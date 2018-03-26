@@ -1,0 +1,184 @@
+{% extends "base_generic.html" %}
+
+{% block menubar %}
+{% if user.is_authenticated %}
+<li>
+ {% if user.is_staff %}
+<a href="{% url 'admin:index' %}">  Go to Admin page  </a> 
+{% endif %}
+
+ &nbsp;		&nbsp; 	
+
+
+
+User: {{ user.get_username }} &nbsp; <a href="{% url 'logout' %}?next={% url 'login' %}">  Logout  </a> &nbsp; &nbsp; &nbsp;</li> 
+
+<br>
+{% endif %} 
+ 
+{% endblock %}
+{% block other%}
+<a align="center">Design View</a>
+<br>
+<br>
+
+<a align="center" style="color:red;">{{mess}}</a>
+
+{% endblock %}
+{% block content %}
+
+<br>
+<form method="POST">
+{% csrf_token %}
+
+<HorizontalPanel>
+     <span id ="project_name"class="textstyle3">Project Name</span>
+    &nbsp; &nbsp;
+    <input type="radio" name="radio" id="radio_id_hgw" checked="checked" onclick="setProjects();" >
+	<label for="radio_id_hgw">HGW</label>
+	&nbsp; &nbsp;
+	<input type="radio" name="radio" id="radio_id_stb" onclick="setProjects();" >
+	<label for="radio_id_stb">STB</label>
+	&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+	<input type="submit" name="report_generator" onclick="Generate_report();" id="report_generator" class="button2" value="Generate Report">
+	&nbsp; &nbsp;&nbsp; &nbsp; 
+	<input type="submit" name="stop"  id="stop" class="button2" value="Stop" style="display:none;">
+	&nbsp; &nbsp;&nbsp; &nbsp;  	
+	<input type="submit" name="final_view" id="final_view" class="button2" value="Go To Final View">
+	&nbsp; &nbsp;&nbsp; &nbsp;  
+	<a>Start Time</a>
+	&nbsp;
+	<input type="date" id="dateStart"  name="start_day" max="2050-12-31"  value="2017-01-01">
+	&nbsp; &nbsp; &nbsp; &nbsp;
+	<a>End Time</a>
+	&nbsp;
+	<input type="date" id="dateEnd" name="end_day" max="2050-12-31"  value="2018-01-01" >
+	
+</HorizontalPanel>
+
+
+<script >
+        document.getElementById("dateEnd").value = getSavedValue("dateEnd");   
+        document.getElementById("dateStart").value = getSavedValue("dateStart"); 
+
+        //get the saved value function - return the value of "v" from localStorage. 
+        function getSavedValue  (v){
+            if (localStorage.getItem(v) === null) {
+                return "2018-01-01";// You can change this to your defualt value. 
+            }
+            return localStorage.getItem(v);
+        }
+</script>
+
+<!--  
+<script>
+document.getElementById('dateEnd').value = new Date().toISOString().substring(0, 10);
+</script>
+<script>
+var d= new Date();
+d.setDate(d.getDate() - 7);
+document.getElementById('dateStart').value = d.toISOString().substring(0, 10);
+</script>
+-->
+
+
+<script>
+var mes = '{{ message }}';
+if(mes != ""){
+alert('{{ message }}');
+}
+</script>
+<br>
+<br>
+
+
+
+
+<script type="text/javascript">
+function Generate_report(){
+	
+var e = document.getElementById("dateEnd");    
+var id = e.id;  // get the sender's id to save it . 
+var val = e.value; // get the value. 
+localStorage.setItem(id, val);// Every time user writing something, the localStorage's value will override . 
+
+
+var j = document.getElementById("dateStart");    
+var id2 = j.id;  // get the sender's id to save it . 
+var val2 = j.value; // get the value. 
+localStorage.setItem(id2, val2);// Every time user writing something, the localStorage's value will override . 
+
+var report_generator = document.getElementById("report_generator");
+var boxHGW = document.getElementById("HGW");
+var boxSTB = document.getElementById("STB");
+var stop = document.getElementById("stop");
+if (report_generator.value == "Generate Report"){
+
+		boxSTB.style.display = "none";
+		boxHGW.style.display = "none";
+		report_generator.style.display = "none";
+		stop.style.display = "inline-block";
+}
+else {
+	report_generator.value = "Generate Report";
+	boxSTB.style.display = "block";
+	boxHGW.style.display = "block";
+}
+
+}
+</script>
+<script type="text/javascript">
+function setProjects(){
+var hgw = document.getElementById("radio_id_hgw").checked;
+var boxHGW = document.getElementById("HGW");
+var boxSTB = document.getElementById("STB");
+if (hgw)
+{
+	boxSTB.style.display = "none";
+
+	boxHGW.style.display = "block";
+
+	
+}
+else
+{
+	boxHGW.style.display = "none";
+
+	boxSTB.style.display = "block";
+	
+
+}
+}
+</script>
+
+
+
+
+
+	<div id="HGW" class="box">
+	{% for project in projectsHGW %}
+	<label class="container" >{{project.name}}
+	<input type="checkbox" name={{project.id}} >
+	<span class="checkmark" ></span>
+	</label>
+	{% endfor %}
+	</div>
+	
+	<div id="STB" class="box" style="display:none;" >
+	{% for project in projectsSTB %}
+	<label class="container" >{{project.name}}
+	<input type="checkbox" name={{project.id}}>
+	<span class="checkmark"></span>
+	</label>
+	{% endfor %}
+	</div>
+
+
+
+</form>
+
+{% for i in projects_list.prj_list %}
+<a> {{i.projectName}}</a>
+{% endfor %}
+
+{% endblock %}

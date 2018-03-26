@@ -1,0 +1,1424 @@
+{% extends "base_generic.html" %}
+
+
+
+
+
+{% block menubar %}
+{% if user.is_authenticated %}
+<li>
+ {% if user.is_staff %}
+<a href="{% url 'admin:index' %}">  Go to Admin page  </a> 
+{% endif %}
+
+ &nbsp;		&nbsp; 					User: {{ user.get_username }} &nbsp; <a href="{% url 'logout' %}?next={% url 'login' %}">  Logout  </a> &nbsp; &nbsp;
+</li> 
+<br>
+
+{% endif %}  
+{% endblock %}
+
+{% block other%}
+<a align="center">Design View</a>
+{% endblock %}
+{% block content %}
+
+<br>
+
+<form  id="commentForm" method="post" action="{% url 'login_success' %}">
+{% csrf_token %}
+
+<HorizontalPanel>
+
+     <span id ="project_name"class="textstyle3">Selected Projects</span>
+    &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;
+	<input type="submit" name="re_report_generator" id="re_report_generator" class="button2" value="Re-Generate Report">
+	&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; 
+	<input type="button" name="report_export" id="report_export" class="button2" value="Export Report" onclick="saveFile();">
+	&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; 
+	
+	<input type="submit" name ="final_view" id="final_view" class="button2" value="Go To Final View" >
+	&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; 
+	<input type="button" name="sava_button" id="sava_button" class="button2" onclick="Save_Project();" value="Save">
+
+</HorizontalPanel>
+
+<br>
+</form>
+
+
+
+<div class="tab" id="minitab" >
+  <button class="tablinks" onclick="showOverview()">Overview</button>
+  <button class="tablinks" onclick="showFeature_history()">Feature_History</button>
+  <button class="tablinks" onclick="showBugs()">Bugs</button>
+</div>
+
+
+<script type="text/javascript">
+function saveFile(){
+var dataFeature = getFeatureHistoryData();
+var dataBugs = getbugsData();
+var dataOverview = getOverviewData();
+var mergedsels= getMergedXSL();
+var col = [];
+var test_plans = window.hot2.getData();
+for (var i in test_plans[0]) {
+	
+	col.push({ autoWidth: true });
+}
+
+//console.log(col);
+
+var workbook = new kendo.ooxml.Workbook({
+sheets: [
+	
+	{columns: col ,
+		
+
+		   
+		title: "Overview",
+	    freezePane: {
+	        colSplit: 3,
+	        rowSplit: 2
+	      },
+		rows: dataOverview },
+		
+	{ 
+    freezePane: {
+        rowSplit: 2
+      },
+	columns: [{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },
+		{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },
+		{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },
+		{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true }
+	],
+	title: "Feature History",
+	rows: dataFeature
+	},		    
+	{columns: [{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true },{ autoWidth: true }],
+		title: "Bugs",
+	    freezePane: {
+	        rowSplit: 1
+	      },
+		rows: dataBugs}
+
+	]});
+		    
+
+
+
+	kendo.saveAs({
+		    dataURI: workbook.toDataURL(),
+		    fileName: "Test.xlsx"
+		});
+}
+//function set Projects
+function setProjectNames(){
+	var selected_project = [];
+	{% for project in projects_list %}	
+	var project = document.getElementById("{{project.projectID}}");
+	if (project.checked) {
+		selected_project.push("{{project.name}}");
+	}
+	{% endfor %}
+	var local = [];
+	
+	for (i in selected_project ){
+		var mydata = [];
+		var onecell = {value: selected_project[i], bold: true};
+		mydata.push(onecell);
+		var onedata = {cells: mydata};
+		local.push(onedata);
+	}
+	console.log(local);
+	return local;
+}
+//end of function
+function getOverviewData(){
+showOverview();
+var test_plans = window.hot2.getData();
+
+//console.log(test_plans);
+
+var header_fontSize = 12;
+var header_fontName = "Calibri";
+var header_color = "#AFAFB0";
+var header = setHeaderXSL();
+var count = window.cyc.length;
+background_color="#CDEDFF";
+count = count + 7 ;
+var topic=[];
+
+
+//adding lines
+
+var data1 = [
+	{cells: [{value: ' ', colSpan: count ,hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName}, {value: 'Total Test-cases',hAlign: "center",background:header_color, bold: true, colSpan: 9 , fontSize: header_fontSize, fontName: header_fontName}, {value: 'Manual Test-cases',hAlign: "center", background:header_color,bold: true, colSpan: 9 , fontSize: header_fontSize, fontName: header_fontName}, {value: 'Automatic Test-cases',hAlign: "center", colSpan: 9 ,background:header_color, bold: true,fontSize: header_fontSize, fontName: header_fontName},{value: 'Priority (Up-To-Date)', hAlign: "center",background:header_color,bold: true,colSpan: 5 , fontSize: header_fontSize, fontName: header_fontName} ,{value: 'Priority ',hAlign: "center",background:header_color, bold: true,colSpan: 5 , fontSize: header_fontSize, fontName: header_fontName}]},
+	{cells: header  }];
+	
+var els = setProjectNames();
+var data = els.concat(data1);
+//end of lines
+
+var str2 = test_plans[0][0];
+var final_data = [];
+
+
+
+for (var i in test_plans){
+var str1 = test_plans[i][0];
+var mydata = [];
+
+for (var j in test_plans[i]){
+background_color = setbackgroundColor(String(test_plans[i][j]),i,j);
+if( j == 0 ){
+	//console.log(topic.indexOf(test_plans[i][0]));
+		if(topic.indexOf(test_plans[i][0]) >= 0){
+		var onecell = {value : "",hAlign: "center",vAlign: "center",background: background_color };
+		mydata.push(onecell);
+		}
+		else{
+			var onecell = {value : test_plans[i][j],hAlign: "center",vAlign: "center",background: background_color };
+			mydata.push(onecell);
+			
+		}
+	}
+	else{
+		
+		var onecell = {value : test_plans[i][j],hAlign: "center",vAlign: "center",background: background_color };
+		mydata.push(onecell);
+		
+
+	}
+
+}
+var onedata = {cells: mydata};
+data.push(onedata);
+if(topic.indexOf(test_plans[i][0]) < 0){
+	topic.push(test_plans[i][0]);
+}
+
+}
+
+return data ;
+}
+function setbackgroundColor(val,i,j){
+
+even_color="#B7E5FF";
+odd_color="#CDEDFF";
+red="#ff9999";
+green="#CEC";
+orange="#ffbf80";
+pink="#9D92BF";
+grey="#E3E5E6";
+background="";
+
+
+if (i % 2 === 0){
+	background=even_color;
+	}
+else{
+	background=odd_color;
+	
+}
+//color state 
+var count = window.cyc.length;
+count=count+7;
+var orange_odd = "#fce9da";
+var orange_even = "#f9bf8f"; 
+ 
+var grey_odd = "#f2f2f2";
+var grey_even = "#bfbfbf";
+
+
+var red_odd = "#f1dcdb";
+var red_even = "#da9695";
+
+
+var green_odd = "#ecf0df";
+var green_even = "#c3d79a";
+var col = j;
+var row = i ;
+if((col == count || col == count+9 || col == count+18) && row % 2 == 0 ){
+   	background=orange_odd;
+   }
+   if((col == count || col == count+9 || col == count+18) && row % 2 != 0 ){
+   	background=orange_even;
+   }
+   
+	 if((col == count+1 ||col == count+2 || col == count+9+1 || col == count+9+2 || col == count+18+1 || col == count+18+2) && row % 2 == 0 ){
+	    	background=grey_odd;
+	    }
+	    if((col == count+1 ||col == count+2 || col == count+9+1 || col == count+9+2 || col == count+18+1 || col == count+18+2) && row % 2 != 0 ){
+	    	background=grey_even;
+	    }
+
+		 if((col == count+3 ||col == count+4 || col == count+9+3 || col == count+9+4 || col == count+18+3 || col == count+18+4) && row % 2 == 0 ){
+		    	background=green_odd;
+		    }
+		    if((col == count+3 ||col == count+4 || col == count+9+3 || col == count+9+4 || col == count+18+3 || col == count+18+4) && row % 2 != 0 ){
+		    	background=green_even;
+		    }
+		    
+			 if((col == count+5 ||col == count+6 || col == count+7 || col == count+8 || col == count+5+9 ||col == count+6+9 || col == count+7+9 || col == count+8+9 || col == count+5+18 ||col == count+6+18 || col == count+7+18 || col == count+8+18) && row % 2 == 0 ){
+			    	background=red_odd;
+			    }
+			    if((col == count+5 ||col == count+6 || col == count+7 || col == count+8 || col == count+5+9 ||col == count+6+9 || col == count+7+9 || col == count+8+9 || col == count+5+18 ||col == count+6+18 || col == count+7+18 || col == count+8+18) && row % 2 != 0 ){
+			    	background=red_even;
+			    } 
+
+//final color state
+
+if (val.includes("GOOD")){
+	background=green;
+	}
+if (val.includes("BAD")){
+	background=red;
+	
+} 
+if (val.includes("MEDIUM")){
+	background=orange;
+} 
+if (val.includes("INC.MEDIUM") ) {     
+	background=pink;
+} 
+if (val.includes("INC.BAD") ) {     
+	background=pink;
+} 
+
+if (val.includes("INC.GOOD") ) {     
+	background=pink;
+} 
+
+if ((val.includes("INC.MEDIUM") && val.includes("GOOD")) || (val.includes("INC.MEDIUM") && val.includes("BAD"))){
+	background=grey;
+} 
+
+if ((val.includes("MEDIUM") && val.includes("GOOD")) || (val.includes("GOOD") && val.includes("BAD")) || (val.includes("BAD") && val.includes("MEDIUM"))){
+	background=grey;
+	
+}
+
+if ((val.includes("INC.GOOD") && val.includes("BAD")) || (val.includes("INC.GOOD") && val.includes("MEDIUM"))){
+	background=grey;
+	
+} 
+if ((val.includes("INC.BAD") && val.includes("GOOD")) || (val.includes("INC.BAD") && val.includes("MEDIUM"))){
+	background=grey;
+	
+} 
+
+return 	background;
+	
+}
+
+function getMergedXSL(){
+
+var data = window.data_overview;
+var mycells = [];
+var myh = [];
+var data_index = data[0][0];
+for(var i in data){
+	if(myh.indexOf(data[i][0])<0 ){
+	var count = count_duplicated(data[i][0]);
+	var nbr1 = parseInt(i)+3;
+	var nbr2 = parseInt(count)+nbr1-1;
+	
+	var cell= "A"+String(nbr1)+":"+"A"+String(nbr2);
+	if(count>1){
+	mycells.push(cell);
+	}
+	myh.push(data[i][0]);
+	}
+}
+
+//console.log(mycells);
+return mycells;
+}
+
+
+
+function setHeaderXSL(){
+var cycle = window.cyc;
+var count = cycle.length;
+var data = [];
+var header_fontSize = 12;
+var header_fontName = "Calibri";
+var header_color = "#AFAFB0";
+data.push({value:'Topic',background:header_color,bold: true,fontSize: header_fontSize,hAlign: "center", fontName: header_fontName});
+data.push({value:'Frequency',background:header_color,bold: true,fontSize: header_fontSize,hAlign: "center", fontName: header_fontName});
+data.push({value:'Test-plan',background:header_color,bold: true,fontSize: header_fontSize,hAlign: "center", fontName: header_fontName});
+for (var i in cycle){
+	data.push({value:cycle[i],background:header_color,bold: true,fontSize: header_fontSize,hAlign: "center", fontName: header_fontName});	
+}
+data.push({value:'Last Execution',background:header_color,bold: true,fontSize: header_fontSize,hAlign: "center", fontName: header_fontName});
+data.push({value:'State',background:header_color,bold: true,fontSize: header_fontSize,hAlign: "center", fontName: header_fontName});
+data.push({value:'Preview State',background:header_color,bold: true,fontSize: header_fontSize,hAlign: "center", fontName: header_fontName});
+data.push({value:'Platform',background:header_color,bold: true,fontSize: header_fontSize,hAlign: "center", fontName: header_fontName});
+
+for (var i=0;i<3;i++){
+	data.push({value:'Assigned', hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName});
+	data.push({value: 'Not Executed', hAlign: "center",colSpan: 2,background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName});
+	data.push({value: 'Passed ',hAlign: "center", colSpan: 2,background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName});
+	data.push({value: 'Failed', hAlign: "center",colSpan: 2,background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName});
+	data.push({value: 'Blocked', hAlign: "center",colSpan: 2,background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName});
+	
+}
+for (var i=0;i<2;i++){
+	data.push({value:'Number Of Bugs', hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName});
+	data.push({value:'Critical', hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName});
+	data.push({value:'Major', hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName});
+	data.push({value:'Medium', hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName});
+	data.push({value:'Minor',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName});
+}
+
+return data;
+}
+function getbugsData(){
+showBugs();
+var test_plans = window.hot1.getData();
+var header_fontSize = 12;
+var header_fontName = "Calibri";
+var header_color = "#AFAFB0";
+
+var data1 = [{cells: [{value:'Test-Plan Name',background:header_color,bold: true,fontSize: header_fontSize,hAlign: "center", fontName: header_fontName},{value:'BugID',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Description',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'State',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Priority',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Severity',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Cycle used',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value: 'Version Detected',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value: 'Platform used',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value: 'Test-cases Affected (Feature/Cycle/Platform)',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value: 'Remove Duplicate (Feature/Cycle/Platform)',hAlign: "center", background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'External ID',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName}]}];
+var els = setProjectNames();
+var data = els.concat(data1);
+
+
+for(var i in test_plans){
+	var background_color="";
+	if(i % 2 === 0 ){
+		background_color="#B7E5FF";
+		
+	}else{
+		
+		background_color="#CDEDFF";
+	}
+	if(test_plans[i][11]==""){
+		test_plans[i][11]=0;
+	}
+
+	
+	var onetest = {cells : [{value : test_plans[i][0],hAlign: "center",background: background_color},{value : test_plans[i][1],hAlign: "center",background: background_color},{value : test_plans[i][2],hAlign: "center",background: background_color},{value : test_plans[i][3],hAlign: "center",background: background_color},{value : test_plans[i][4],hAlign: "center",background: background_color},{value : test_plans[i][5],hAlign: "center",background: background_color},{value : test_plans[i][6],hAlign: "center",background: background_color},{value : test_plans[i][7],hAlign: "center",background: background_color},{value : test_plans[i][8],hAlign: "center",background: background_color},{value : test_plans[i][9],hAlign: "center",background: background_color},{value : test_plans[i][10],hAlign: "center",background: background_color},{value : test_plans[i][11],hAlign: "center",background: background_color}]};
+
+	data.push(onetest);
+
+	
+}
+return data;
+	
+}
+function getFeatureHistoryData(){
+var test_plans = window.hot.getData();
+
+var header_fontSize = 12;
+var header_fontName = "Calibri";
+var header_color = "#AFAFB0";
+
+
+var data1 = [{cells: [{value: ' ', colSpan: 7 ,hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName}, {value: 'Total Test-cases',hAlign: "center",background:header_color, bold: true, colSpan: 9 , fontSize: header_fontSize, fontName: header_fontName}, {value: 'Manual Test-cases',hAlign: "center", background:header_color,bold: true, colSpan: 9 , fontSize: header_fontSize, fontName: header_fontName}, {value: 'Automatic Test-cases',hAlign: "center", colSpan: 9 ,background:header_color, bold: true,fontSize: header_fontSize, fontName: header_fontName},{value: 'Priority (Up-To-Date)', hAlign: "center",background:header_color,bold: true,colSpan: 5 , fontSize: header_fontSize, fontName: header_fontName} ,{value: 'Priority ',hAlign: "center",background:header_color, bold: true,colSpan: 5 , fontSize: header_fontSize, fontName: header_fontName}]},
+{cells: [{value:'Project',background:header_color,hAlign: "center",bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Test-Plan Name',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Platform',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Cycle',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Version',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'State',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Preview State',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Assigned', hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value: 'Not Executed', hAlign: "center",colSpan: 2,background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value: 'Passed ',hAlign: "center", colSpan: 2,background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value: 'Failed', hAlign: "center",colSpan: 2,background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value: 'Blocked', hAlign: "center",colSpan: 2,background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Assigned', hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value: 'Not Executed',hAlign: "center", colSpan: 2,background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value: 'Passed',hAlign: "center", colSpan: 2,background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value: 'Failed',hAlign: "center", colSpan: 2,background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value: 'Blocked',hAlign: "center", colSpan: 2,background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Assigned', hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value: 'Not Executed', hAlign: "center",colSpan: 2,background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Passed', hAlign: "center",colSpan: 2,background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Failed',hAlign: "center", colSpan: 2,background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Blocked',hAlign: "center", colSpan: 2,background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Number Of Bugs', hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Critical', hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Major', hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Medium',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Minor', hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Number Of Bugs', hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Critical', hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Major', hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Medium', hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName},{value:'Minor',hAlign: "center",background:header_color,bold: true,fontSize: header_fontSize, fontName: header_fontName}]}];
+
+var els = setProjectNames();
+var data = els.concat(data1);
+
+for(var i in test_plans){
+if(test_plans[i][0]==true){
+var background_color="";
+var backgroundstatusColor=""; 
+var backgroundPreviewStatusColor="";
+//colors
+var orange_odd = "#fce9da";
+var orange_even = "#f9bf8f"; 
+var grey_odd = "#f2f2f2";
+var grey_even = "#bfbfbf";
+var red_odd = "#f1dcdb";
+var red_even = "#da9695";
+var green_odd = "#ecf0df";
+var green_even = "#c3d79a";
+
+
+var red = "";
+var green="";
+var grey="";
+var orange ="";
+	
+	if(i % 2 === 0 ){
+		background_color="#B7E5FF";
+		red = red_even;
+		green=green_even;
+		grey=grey_even;
+		orange =orange_even;
+		
+	}else{
+		
+		background_color="#CDEDFF";
+		red = red_odd;
+		green=green_odd;
+		grey=grey_odd;
+		orange =orange_odd;
+	}
+	backgroundstatusColor=background_color;
+	backgroundPreviewStatusColor=background_color;
+	
+	if(test_plans[i][6]=="GOOD"){backgroundstatusColor="#CEC";}
+	if(test_plans[i][6]=="MEDIUM"){backgroundstatusColor='#ffbf80';}
+	if(test_plans[i][6]=="BAD"){backgroundstatusColor='#ff9999';}
+	if(test_plans[i][6]== "INC.BAD" || test_plans[i][6]== "INC.GOOD"||test_plans[i][6]== "INC.MEDIUM" ){backgroundstatusColor='#9D92BF';}
+	
+	if(test_plans[i][7]=="GOOD"){backgroundPreviewStatusColor="#CEC";}
+	if(test_plans[i][7]=="MEDIUM"){backgroundPreviewStatusColor='#ffbf80';}
+	if(test_plans[i][7]=="BAD"){backgroundPreviewStatusColor='#ff9999';}
+	if(test_plans[i][7]=="INC.BAD" || test_plans[i][7]== "INC.GOOD" || test_plans[i][7]== "INC.MEDIUM" ){backgroundPreviewStatusColor='#9D92BF';}
+
+	
+	var onetest = {cells : [{value : test_plans[i][1],hAlign: "center",background: background_color},{value : test_plans[i][2],hAlign: "center",background: background_color},{value : test_plans[i][3],hAlign: "center",background: background_color},{value : test_plans[i][4],hAlign: "center",background: background_color},{value : test_plans[i][5],hAlign: "center",background: background_color},{value : test_plans[i][6],hAlign: "center",background: backgroundstatusColor},{value : test_plans[i][7],hAlign: "center",background: backgroundPreviewStatusColor},{value : test_plans[i][8],hAlign: "center",background: orange},{value : test_plans[i][9],hAlign: "center",background: grey},{value : test_plans[i][10],hAlign: "center",background: grey},{value : test_plans[i][11],hAlign: "center",background: green},{value : test_plans[i][12],hAlign: "center",background: green},{value : test_plans[i][13],hAlign: "center",background: red},{value : test_plans[i][14],hAlign: "center",background: red},{value : test_plans[i][15],hAlign: "center",background: red},{value : test_plans[i][16],hAlign: "center",background: red},{value : test_plans[i][17],hAlign: "center",background: orange},{value : test_plans[i][18],hAlign: "center",background: grey},{value : test_plans[i][19],hAlign: "center",background: grey},{value : test_plans[i][20],hAlign: "center",background: green},{value : test_plans[i][21],hAlign: "center",background: green},{value : test_plans[i][22],hAlign: "center",background: red},{value : test_plans[i][23],hAlign: "center",background: red},{value : test_plans[i][24],hAlign: "center",background: red},{value : test_plans[i][25],hAlign: "center",background: red},{value : test_plans[i][26],hAlign: "center",background: orange},{value : test_plans[i][27],hAlign: "center",background: grey},{value : test_plans[i][28],hAlign: "center",background: grey},{value : test_plans[i][29],hAlign: "center",background: green},{value : test_plans[i][30],hAlign: "center",background: green},{value : test_plans[i][31],hAlign: "center",background: red},{value : test_plans[i][32],hAlign: "center",background: red},{value : test_plans[i][33],hAlign: "center",background: red},{value : test_plans[i][34],hAlign: "center",background: red},{value : test_plans[i][35],hAlign: "center",background: background_color},{value : test_plans[i][36],hAlign: "center",background: background_color},{value : test_plans[i][37],hAlign: "center",background: background_color},{value : test_plans[i][38],hAlign: "center",background: background_color},{value : test_plans[i][39],hAlign: "center",background: background_color},{value : test_plans[i][40],hAlign: "center",background: background_color},{value : test_plans[i][41],hAlign: "center",background: background_color},{value : test_plans[i][42],hAlign: "center",background: background_color},{value : test_plans[i][43],hAlign: "center",background: background_color},{value : test_plans[i][44],hAlign: "center",background: background_color}]};
+
+	data.push(onetest)
+}}
+return(data);	
+}
+</script>
+
+<script type="text/javascript">
+
+function showOverview(){
+
+restore_table("Overview");
+var feature_history = document.getElementById('feature_history');
+feature_history.style.display = "none";	
+var bugs_var = document.getElementById('bugs');
+bugs_var.style.display = "none";
+var overview = document.getElementById('Overview');
+overview.style.display = "block";
+
+var overview_text = document.getElementById('overview_text');
+var bugs_text = document.getElementById('bugs_text');
+var feature_history_text =  document.getElementById('feature_history_text');
+feature_history_text.style.display = "none";
+bugs_text.style.display = "none";
+overview_text.style.display = "block";
+
+
+
+
+window.reviwedData=[];
+var test_plans = window.hot.getData();
+
+for (var i in test_plans){
+	if(test_plans[i][0]==true){
+		window.reviwedData.push(test_plans[i]);
+	}
+}
+//console.log(window.reviwedData);
+
+set_header();
+
+window.data_overview = set_data();
+
+//console.log(window.data_overview);
+
+var mycells = set_merged();
+
+var overview = document.getElementById('Overview');
+
+var merging = set_merged();
+//console.log(merging);
+
+
+
+function OverviewRenderer(instance, td, row, col, prop, value, cellProperties) {
+    Handsontable.renderers.TextRenderer.apply(this, arguments);
+    var val = String(value);
+    
+	 //align text to center
+	 td.style.textAlign = 'center';
+
+    if (col == 0 || col == 1 ){
+    td.style.fontWeight = 'bold';	
+    td.style.background = '#E1E0E3';	
+    }
+    if (col == 2){
+        td.style.fontWeight = 'bold';
+    }
+    if (val.includes("GOOD")){
+    td.style.fontWeight = 'bold';
+    td.style.color = 'green';
+    td.style.background = '#CEC';
+  	}
+    if (val.includes("BAD")){
+	    td.style.fontWeight = 'bold';
+	    td.style.color = 'red';
+	    td.style.background = '#ff9999';
+    	
+    } 
+    if (val.includes("MEDIUM")){
+	    td.style.fontWeight = 'bold';
+	    td.style.color = '#ff6600';
+	    td.style.background = '#ffbf80';
+    	
+    } 
+    if (val.includes("INC.MEDIUM") || val.includes("INC.GOOD") || val.includes("INC.BAD")){
+	    td.style.fontWeight = 'bold';
+	    td.style.color = '#392A68';
+	    td.style.background = '#9D92BF';
+    	
+    } 
+    
+    
+    if ((val.includes("INC.MEDIUM") && val.includes("GOOD")) || (val.includes("INC.MEDIUM") && val.includes("BAD"))){
+	    td.style.fontWeight = 'bold';
+	    td.style.color = '#696969';
+	    td.style.background = '#CECECE';
+    	
+    } 
+    
+    if ((val.includes("MEDIUM") && val.includes("GOOD")) || (val.includes("GOOD") && val.includes("BAD")) || (val.includes("BAD") && val.includes("MEDIUM"))){
+	    td.style.fontWeight = 'bold';
+	    td.style.color = '#696969';
+	    td.style.background = '#CECECE';
+    	
+    }
+    
+    if ((val.includes("INC.GOOD") && val.includes("BAD")) || (val.includes("INC.GOOD") && val.includes("MEDIUM"))){
+	    td.style.fontWeight = 'bold';
+	    td.style.color = '#696969';
+	    td.style.background = '#CECECE';
+    	
+    } 
+    if ((val.includes("INC.BAD") && val.includes("GOOD")) || (val.includes("INC.BAD") && val.includes("MEDIUM"))){
+	    td.style.fontWeight = 'bold';
+	    td.style.color = '#696969';
+	    td.style.background = '#CECECE';
+    	
+    }
+    //color section
+    
+    
+    var count = window.number_of_weeks+7;
+    
+	 var orange_odd = "#fce9da";
+	 var orange_even = "#f9bf8f"; 
+	  
+	 var grey_odd = "#f2f2f2";
+	 var grey_even = "#bfbfbf";
+	 
+	 
+	 var red_odd = "#f1dcdb";
+	 var red_even = "#da9695";
+	 
+	 
+	 var green_odd = "#ecf0df";
+	 var green_even = "#c3d79a";
+	 
+	 if((col == count || col == count+9 || col == count+18) && row % 2 == 0 ){
+	    	td.style.background=orange_odd;
+	    }
+	    if((col == count || col == count+9 || col == count+18) && row % 2 != 0 ){
+	    	td.style.background=orange_even;
+	    }
+	    
+		 if((col == count+1 ||col == count+2 || col == count+9+1 || col == count+9+2 || col == count+18+1 || col == count+18+2) && row % 2 == 0 ){
+		    	td.style.background=grey_odd;
+		    }
+		    if((col == count+1 ||col == count+2 || col == count+9+1 || col == count+9+2 || col == count+18+1 || col == count+18+2) && row % 2 != 0 ){
+		    	td.style.background=grey_even;
+		    }
+    
+			 if((col == count+3 ||col == count+4 || col == count+9+3 || col == count+9+4 || col == count+18+3 || col == count+18+4) && row % 2 == 0 ){
+			    	td.style.background=green_odd;
+			    }
+			    if((col == count+3 ||col == count+4 || col == count+9+3 || col == count+9+4 || col == count+18+3 || col == count+18+4) && row % 2 != 0 ){
+			    	td.style.background=green_even;
+			    }
+			    
+				 if((col == count+5 ||col == count+6 || col == count+7 || col == count+8 || col == count+5+9 ||col == count+6+9 || col == count+7+9 || col == count+8+9 || col == count+5+18 ||col == count+6+18 || col == count+7+18 || col == count+8+18) && row % 2 == 0 ){
+				    	td.style.background=red_odd;
+				    }
+				    if((col == count+5 ||col == count+6 || col == count+7 || col == count+8 || col == count+5+9 ||col == count+6+9 || col == count+7+9 || col == count+8+9 || col == count+5+18 ||col == count+6+18 || col == count+7+18 || col == count+8+18) && row % 2 != 0 ){
+				    	td.style.background=red_even;
+				    } 
+    
+    
+    
+    
+    
+    
+}
+
+
+
+
+
+window.hot2 = new Handsontable(overview, {
+   data: window.data_overview,
+   rowHeaders: true,
+   autoRowSize: true,
+   colHeaders: true,
+   contextMenu: true,
+//adding height
+   rowHeights: 100,
+   className: "htCenter htMiddle",
+//end adding
+   manualColumnResize: true,
+   manualRowResize: true,
+   dropdownMenu: true,
+   filters: true,
+   mergeCells: merging,
+   fixedColumnsLeft: 3,
+   cells: function (row, col, prop) {
+       var cellProperties = {};
+
+         cellProperties.renderer = OverviewRenderer; // uses function directly
+       return cellProperties;
+     },
+   nestedHeaders: [[{label: '', colspan: window.number_of_weeks+3},{label: '', colspan: 4}, {label: 'Total Test-cases', colspan: 9}, {label: 'Manual Test-cases', colspan: 9}, {label: 'Automatic Test-cases', colspan: 9}, {label: 'Priority',colspan: 5}, {label: 'Priority(Up-To-Date)',colspan: 5}],
+	   
+	   window.header]
+     });
+     
+
+
+}
+
+function set_merged(){
+var data = window.data_overview;
+
+var mycells = [];
+var data_index = data[0][0];
+
+for(var i in data){
+
+	var count = count_duplicated(data[i][0]);
+	
+	mycells.push({row: parseInt(first_index_of_test(data[i][0])), col: 0, rowspan: parseInt(count), colspan: 1});
+	
+}
+return mycells;
+}
+
+function first_index_of_test(chaine){
+	var data = window.data_overview;
+	var j = 0 ;
+	for(var i in data){
+		if(data[i][0] == chaine){
+			return i;
+		}
+	}
+
+	
+	
+}
+function count_duplicated(chaine){
+	var data = window.data_overview;
+	var j = 0 ;
+	for(var i in data){
+		if(data[i][0] == chaine){
+			j++;
+		}
+	}
+	return j ;
+}
+
+function set_header(){
+var test_plans = window.hot.getData() ;
+
+
+window.tests = [];
+window.header = ['Topic','Frequency','Test-plan'];
+window.number_of_weeks = 0;
+cycles = [];
+for (var i in test_plans){
+	if (test_plans[i][0] == true){
+		
+		
+		if(window.tests.indexOf(test_plans[i][2]) < 0){
+		window.tests.push(test_plans[i][2]);
+		}
+		
+		if (cycles.indexOf(test_plans[i][4]) < 0) { 
+			window.number_of_weeks++;
+			cycles.push(test_plans[i][4]);
+			
+		}
+		
+	}
+	}
+
+cycles.sort(compare);
+window.cyc=cycles;
+Array.prototype.push.apply(window.header, cycles);
+extra = ['Last Execusion','State','Preview State','Platform','Assigned',{label: 'Not Executed', colspan: 2},{label: 'Passed ', colspan: 2},{label: 'Failed', colspan: 2},{label: 'Blocked', colspan: 2},'Assigned',{label: 'Not Executed', colspan: 2},{label: 'Passed', colspan: 2},{label: 'Failed', colspan: 2},{label: 'Blocked', colspan: 2},'Assigned',{label: 'Not Executed', colspan: 2},{label: 'Passed', colspan: 2},{label: 'Failed', colspan: 2},{label: 'Blocked', colspan: 2},'Number Of Bugs','Critical','Major','Medium','Minor','Number Of Bugs','Critical','Major','Medium','Minor'];
+Array.prototype.push.apply(window.header, extra);
+
+//console.log(window.tests);
+
+}
+
+function set_data(){
+
+data = [];
+var test_plan = window.hot.getData();
+existed_data=[]
+
+console.log(test_plan);
+
+
+for(var i in window.tests){
+	
+	var onetest = get_last_execution(window.tests[i]);
+	var onetestData = get_last_execution(window.tests[i]);
+	
+	console.log(onetest);
+	
+	onetest.splice(0, 2);
+	onetest.splice(0, 0, "");
+	onetest.splice(0, 0, "");
+
+	var version = onetest[5];
+	onetest[6]=onetest[6]+"\n"+version;
+	onetest.splice(5, 1);
+	arraymove(onetest,3,6);
+	
+	for (j = 0; j < window.number_of_weeks; j++){
+		onetest.splice(3, 0, "");
+	}
+	
+
+	
+	console.log(onetest);
+	
+	for (var j in test_plan){
+		
+		
+		if (test_plan[j][2] == onetest[2] && test_plan[j][0] == true){
+
+			index = window.header.indexOf(test_plan[j][4]);
+
+			//console.log(index);
+			
+			onetest[index]=onetest[index]+test_plan[j][6]+" ("+abbreviation(test_plan[j][1].substr(4, test_plan[j][1].length))+")"+"\n"+test_plan[j][5]+"\n";
+			
+			//added lines here
+			if(onetestData[4]==test_plan[j][4]){
+				
+				//console.log("Hello "+test_plan[j][4]);
+				
+				onetest[index]=onetestData[6]+" ("+abbreviation(test_plan[j][1].substr(4, test_plan[j][1].length))+")"+"\n"+onetestData[5]+"\n";	
+				
+				//console.log(onetestData);
+			}
+			//end of added line
+		}}
+		
+	
+	
+	onetest[0]=get_test_topic(onetest[2]);
+	onetest[1]=get_test_frequency(onetest[2]);
+	onetest.splice(onetest.length-1, 1);
+
+	if(existed_data.indexOf(onetest[2]) < 0){
+		existed_data.push(onetest[2])	
+		data.push(onetest);
+		}
+}
+
+
+data.sort();
+//console.log(existed_data);
+//console.log(data);
+
+return data;
+
+}
+
+
+function get_test_topic(chaine){
+	var data = JSON.parse("{{test_classification|escapejs}}");
+	var class_tests = data['data'];
+
+	for(var i in class_tests)
+	{ 
+	     if(class_tests[i]['test_plan_name'] == chaine){
+	    	 return class_tests[i].topic;
+	    	 
+	     }
+	     
+	}
+
+	return "N/A";
+}
+function get_test_frequency(chaine){
+	var data = JSON.parse("{{test_classification|escapejs}}");
+	var class_tests = data.data;
+
+	for(var i in class_tests)
+	{ 
+	     if(class_tests[i]['test_plan_name'] == chaine){
+	    	 return class_tests[i].frequency;
+	    	 
+	     }
+	     
+	}
+
+	return "N/A";
+	
+}
+
+function get_last_execution(val){
+	var max_index=getIndexOfTestPlan(val);
+	//console.log(max_index);
+	var cy_index=0;
+	
+	var test_plans=window.reviwedData;
+
+	
+	//console.log(test_plans);
+	
+	var cy = window.cyc;
+	for (var i in test_plans){
+		if (test_plans[i][2]== val){
+			
+			if (cy.indexOf(test_plans[i][4])> -1){
+				
+				if (cy_index<cy.indexOf(test_plans[i][4])){
+					
+					cy_index=cy.indexOf(test_plans[i][4]);
+					max_index=i;	
+					
+				}
+				
+			}
+		}
+		}
+	return (test_plans[max_index]);
+}
+function getIndexOfTestPlan(val){
+	var test_plans = window.reviwedData;
+	for (var i in test_plans){
+	if(val==test_plans[i][2]){
+		return i;
+	}		
+	}
+}
+
+function compare(cycle1,cycle2) {
+	if(cycle1.search("-WK") > 0 && cycle2.search("-WK") > 0 ){
+		var year1 = cycle1.substr(cycle1.search("-WK")-4, 4);
+		var year2 = cycle2.substr(cycle2.search("-WK")-4, 4);
+		var week1 = cycle1.substr(cycle1.search("-WK")+3, 2);
+		var week2 = cycle2.substr(cycle2.search("-WK")+3, 2);
+		if(parseInt(year2)>parseInt(year1)){
+		return -1;
+		}
+		if(parseInt(year2)==parseInt(year1)) {
+		if(parseInt(week2)>parseInt(week1)){
+		return -1;
+		}
+		if(parseInt(week2)==parseInt(week1)){
+		return 0;
+		}
+		else{
+		return 1;
+		}
+		}
+		else{
+		return 1;
+		}
+		}
+		else{
+		return -1;
+		}
+		}
+	
+
+function max(cycle1,cycle2){
+	if(cycle1.search("-WK") > 0 && cycle2.search("-WK") > 0 ){
+	var year1 = cycle1.substr(cycle1.search("-WK")-4, 4);
+	var year2 = cycle2.substr(cycle2.search("-WK")-4, 4);
+	var week1 = cycle1.substr(cycle1.search("-WK")+3, 2);
+	var week2 = cycle2.substr(cycle2.search("-WK")+3, 2);
+	if(parseInt(year2)>parseInt(year1)){
+	return true;
+	}
+	if(parseInt(year2)==parseInt(year1)) {
+	if(parseInt(week2)>parseInt(week1)){
+	return true;
+	}
+	if(parseInt(week2)==parseInt(week1)){
+	return true;
+	}
+	else{
+	return false;
+	}
+	}
+	else{
+	return false;
+	}
+	}
+	else{
+	return true;
+	}
+	}
+	
+function arraymove(arr, fromIndex, toIndex) {
+    var element = arr[fromIndex];
+    arr.splice(fromIndex, 1);
+    arr.splice(toIndex, 0, element);
+}
+function abbreviation(name_project){
+	 
+	if (name_project.length <= 4){
+	    return name_project;
+	    
+	}    
+	else{
+	    return(name_project.charAt(0).toUpperCase()+name_project.charAt(1).toUpperCase()+name_project.charAt((name_project.length/2)+2).toUpperCase()+name_project.charAt(name_project.length-1).toUpperCase())
+	}
+	    
+	}
+</script>
+
+
+<script type="text/javascript">
+function bugsRenderer(instance, td, row, col, prop, value, cellProperties) {
+    Handsontable.renderers.TextRenderer.apply(this, arguments);
+ 	if (col != 2){
+ 		td.style.textAlign = 'center';	
+ 	}
+ 	}
+
+function setBugs(matchingResults){
+	restore_table("bugs");
+	var feature_history = document.getElementById('bugs');
+	 window.hot1 = new Handsontable(feature_history, {
+	    data: matchingResults,
+		rowHeaders: true,
+	    colHeaders: false,
+	    contextMenu: true,
+		
+		manualColumnResize: true,
+	    manualRowResize: true,
+	    dropdownMenu: true,
+	    filters: true,
+	    cells: function (row, col, prop) {
+	        var cellProperties = {};
+	        
+	          cellProperties.renderer = bugsRenderer; // uses function directly
+	        return cellProperties;
+	      },
+	    nestedHeaders: [
+	    	['Test Plan','BugID','Description','State','Priority','Severity','Cycle Used','Version Detected','Platform Used','Test Cases Affected','Remove Duplicate','External ID']],
+		  columns: [{data: 'test_plan',editor: false},{data: 'bugID',editor: false},{data: 'description',editor: false},{data: 'state',editor: false},{data: 'priority',editor: false},{data: 'severity',editor: false},{data: 'cycle_used',editor: false},{data: 'version_detected',editor: false},{data:'platform_used',editor: false},{data:'test_Cases_Affected',editor: false},{data: 'remove_Duplicate',editor: false},{data: 'external_ID',editor: false}]});	
+}
+</script>
+
+
+</script>
+<script type="text/javascript">
+function showFeature_history(){
+
+var feature_history = document.getElementById('feature_history');
+feature_history.style.display = "block";	
+var bugs_var = document.getElementById('bugs');
+bugs_var.style.display = "none";	
+var overview = document.getElementById('Overview');
+overview.style.display = "none";
+
+var overview_text = document.getElementById('overview_text');
+var bugs_text = document.getElementById('bugs_text');
+var feature_history_text =  document.getElementById('feature_history_text');
+feature_history_text.style.display = "block";
+bugs_text.style.display = "none";
+overview_text.style.display = "none";
+}
+</script>
+
+<script type="text/javascript">
+function showBugs(){
+restore_table("bugs");
+var feature_history = document.getElementById('feature_history');
+
+var bugs_var = document.getElementById('bugs');
+bugs_var.style.display = "block";
+
+var overview = document.getElementById('Overview');
+overview.style.display = "none";
+
+var overview_text = document.getElementById('overview_text');
+var bugs_text = document.getElementById('bugs_text');
+var feature_history_text =  document.getElementById('feature_history_text');
+feature_history_text.style.display = "none";
+bugs_text.style.display = "block";
+overview_text.style.display = "none";
+
+
+var bugs = JSON.parse("{{projects_bugs|escapejs}}");
+test_plans = window.hot.getData();
+//console.log(test_plans)
+
+var selected_bugs = [];
+//console.log(bugs["data"])
+var ja = bugs["data"]
+//console.log(ja)
+for (var i in test_plans ){
+	if (test_plans[i][0]== true){
+		//console.log("hello")
+		for(var j = 0; j < ja.length; j++)
+		{
+		  if(ja[j].test_plan == test_plans[i][2] &&  ja[j].platform_used == test_plans[i][3] && ja[j].cycle_used == test_plans[i][4] && ja[j].version_detected == test_plans[i][5])
+		  {
+			  selected_bugs.push(ja[j])
+		  }
+		}	
+	}	
+}	
+//console.log(selected_bugs);
+setBugs(selected_bugs);
+feature_history.style.display = "none";	
+}
+</script>
+<script type="text/javascript">
+function updateProjects(){
+var feature_history = document.getElementById('feature_history');
+feature_history.style.display = "block";
+
+var bugs_var = document.getElementById('bugs');
+bugs_var.style.display = "none";	
+
+var overview_var = document.getElementById('Overview');
+overview_var.style.display = "none";	
+
+
+var selected_project = [];
+{% for project in projects_list %}	
+var project = document.getElementById("{{project.projectID}}");
+if (project.checked) {
+	selected_project.push("{{project.name}}");
+}
+
+{% endfor %}
+//console.log( selected_project );
+
+var data = JSON.parse("{{projects_content|escapejs}}");
+
+var matchingResults = data['data'].filter(function(x){ return selected_project.includes(x.project); });
+//console.log(bugs);
+console.log(matchingResults);
+var matchingResult = [];
+matchingResult = matchingResults.sort(sortByMultipleKey(["cycle","project","name","platform"]));
+console.log(matchingResult);
+setFeature_history(matchingResult);
+}
+</script>
+
+<script type="text/javascript">
+function sortByMultipleKey(keys) {
+    return function(a,b) {
+        if (keys.length == 0) return 0; // force to equal if keys run out
+        key = keys[0]; // take out the first key
+        if (a[key].toLowerCase() < b[key].toLowerCase()) return -1; // will be 1 if DESC
+        else if (a[key].toLowerCase() > b[key].toLowerCase()) return 1; // will be -1 if DESC
+        
+        else return sortByMultipleKey(keys.slice(1))(a, b);
+    }
+}
+</script>
+
+
+<div id="HGW" class="box2">
+{% for project in projects_list %}
+<label class="container" >{{project.name}}
+<input type="checkbox" name="{{project.projectID}}" onclick="updateProjects();" id="{{project.projectID}}" checked>
+<span class="checkmark" ></span>
+</label>	
+{% endfor %}
+</div>
+<br>
+<br>
+
+<div id="table" class="table">
+<span id ="feature_history_text" class="textstyle3" style="display:none;" >Feature History</span>
+<span id ="bugs_text" class="textstyle3" style="display:none;" >Bugs</span>
+<span id ="overview_text" class="textstyle3" style="display:none;" >Overview</span>
+
+<div id="feature_history" name="feature_history" class="handsontable" style="z-index: 10"></div>
+<div id="bugs" name="bugs" class="handsontable" style="z-index: 10"></div>
+<div id="Overview" name="Overview" class="handsontable" style="z-index: 10"></div>
+</div>
+
+
+
+<script type="text/javascript">
+function setFeature_history(matchingResults){
+	var overview_text = document.getElementById('overview_text');
+	var bugs_text = document.getElementById('bugs_text');
+	var feature_history_text =  document.getElementById('feature_history_text');
+	feature_history_text.style.display = "block";
+	bugs_text.style.display = "none";
+	overview_text.style.display = "none";	
+	
+	  function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
+		    Handsontable.renderers.TextRenderer.apply(this, arguments);
+			
+		  //color declaration
+		  
+		 var orange_odd = "#fce9da";
+		 var orange_even = "#f9bf8f"; 
+		  
+		 var grey_odd = "#f2f2f2";
+		 var grey_even = "#bfbfbf";
+		 
+		 
+		 var red_odd = "#f1dcdb";
+		 var red_even = "#da9695";
+		 
+		 
+		 var green_odd = "#ecf0df";
+		 var green_even = "#c3d79a";
+		 
+		 
+		 //align text to center
+		 td.style.textAlign = 'center';
+		   if (col==5){
+			   td.style.width = "150px";
+		   }
+		  
+		    if (value == "GOOD"){
+		    td.style.fontWeight = 'bold';
+		    td.style.color = 'green';
+		    td.style.background = '#CEC';
+		  }
+		    if (value == "BAD"){
+			    td.style.fontWeight = 'bold';
+			    td.style.color = 'red';
+			    td.style.background = '#ff9999';
+		    	
+		    } 
+		    if (value == "MEDIUM"){
+			    td.style.fontWeight = 'bold';
+			    td.style.color = '#ff6600';
+			    td.style.background = '#ffbf80';
+		    	
+		    } 
+		    if (value == "INC.MEDIUM" || value == "INC.GOOD" || value == "INC.BAD"){
+			    td.style.fontWeight = 'bold';
+			    td.style.color = '#392A68';
+			    td.style.background = '#9D92BF';
+		    	
+		    } 
+		    
+		    if((col == 8 || col == 17 || col == 26) && row % 2 == 0 ){
+		    	td.style.background=orange_odd;
+		    }
+		    if((col == 8 || col == 17 || col == 26) && row % 2 != 0 ){
+		    	td.style.background=orange_even;
+		    }
+		    
+		    
+		    if((col == 9 ||col == 10 || col == 18 || col == 19 || col == 27 || col == 28 ) && row % 2 == 0 ){
+		    	td.style.background=grey_odd;
+		    }
+		    if((col == 9 ||col == 10 || col == 18 || col == 19 || col == 27 || col == 28) && row % 2 != 0 ){
+		    	td.style.background=grey_even;
+		    }
+		    
+		    
+		    if((col == 11 ||col == 12 || col==20 || col == 21 || col == 29 || col == 30) && row % 2 == 0 ){
+		    	td.style.background=green_odd;
+		    }
+		    if((col == 11 ||col == 12 || col==20 || col == 21 || col == 29 || col == 30) && row % 2 != 0 ){
+		    	td.style.background=green_even;
+		    }
+		    
+		    
+		    if((col == 13 ||col == 14 ||col == 15 || col == 16 || col == 22 || col == 23 || col == 24 || col == 25 || col == 31 || col == 32 || col == 33 || col == 34) && row % 2 == 0 ){
+		    	td.style.background=red_odd;
+		    }
+		    if((col == 13 ||col == 14 ||col == 15 || col == 16 || col == 22 || col == 23 || col == 24 || col == 25 || col == 31 || col == 32 || col == 33 || col == 34 ) && row % 2 != 0 ){
+		    	td.style.background=red_even;
+		    }
+		    
+		    
+	  }
+	
+	
+restore_table("feature_history");
+//console.log(matchingResults);
+var feature_history = document.getElementById('feature_history');
+ window.hot = new Handsontable(feature_history, {
+    data: matchingResults,
+	rowHeaders: true,
+    colHeaders: true,
+    contextMenu: true,
+    sortIndicator: true,
+    columnSorting: true,
+    
+	manualColumnResize: true,
+    manualRowResize: true,
+    autoColumnSize: true,
+    dropdownMenu: true,
+    filters: true,
+    hiddenColumns: {
+        columns: [45],
+        indicators: false
+      },
+    cells: function (row, col, prop) {
+        var cellProperties = {};
+        if (col !=0){
+          cellProperties.renderer = firstRowRenderer; // uses function directly
+        return cellProperties;}
+      },
+      
+    
+    nestedHeaders: [
+      [{label: '', colspan: 8}, {label: 'Total Test-cases', colspan: 9}, {label: 'Manual Test-cases', colspan: 9}, {label: 'Automatic Test-cases', colspan: 9},{label: 'Priority (Up-To-Date)', colspan: 5},{label: 'Priority ', colspan: 6} ],
+      ['Reviwed','Project','Name','Platform','Cycle','Version','State','Preview State','Assigned',{label: 'Not Executed', colspan: 2},{label: 'Passed ', colspan: 2},{label: 'Failed', colspan: 2},{label: 'Blocked', colspan: 2},'Assigned',{label: 'Not Executed', colspan: 2},{label: 'Passed', colspan: 2},{label: 'Failed', colspan: 2},{label: 'Blocked', colspan: 2},'Assigned',{label: 'Not Executed', colspan: 2},{label: 'Passed', colspan: 2},{label: 'Failed', colspan: 2},{label: 'Blocked', colspan: 2},'Number Of Bugs','Critical','Major','Medium','Minor','Number Of Bugs','Critical','Major','Medium','Minor','Date']],
+	  columns: [{data: 'reviwed',type: 'checkbox'},{data: 'project',editor: false},{data: 'name',editor: false},{data: 'platform',editor: false},{data: 'cycle',editor: false},{data: 'version'},{data: 'state'},{data: 'preview_state'},{data:'assigned_total'},{data:'not_executed_total'},{data:'not_executed_total_pr'},{data: 'passed_total'},{data: 'passed_total_pr'},{data: 'failed_total'},{data: 'failed_total_pr'},{data: 'blocked_total'},{data: 'blocked_total_pr'},{data: 'assigned_manual'},{data: 'not_executed_manual'},{data: 'not_executed_manual_pr'},{data: 'passed_manual'},{data: 'passed_manual_pr'},{data:'failed_manual'},{data:'failed_manual_pr'},{data:'blocked_manual'},{data:'blocked_manual_pr'},{ data:'assigned_automated'},{data:'not_executed_automated'},{data:'not_executed_automated_pr'}, {data: 'passed_automated'},{data: 'passed_automated_pr'},{data: 'failed_automated'},{data: 'failed_automated_pr'}, {data: 'blocked_automated'}, {data: 'blocked_automated_pr'},{data: 'number_of_bug_up_to_date'},{data: 'number_of_critical_bug_up_to_date'},{data:'number_of_major_bug_up_to_date'},{data:'number_of_medium_bug_up_to_date'},{data: 'number_of_minor_bug_up_to_date'},{data: 'number_of_bug'},{data: 'number_of_critical_bug'},{data: 'number_of_major_bug' },{ data: 'number_of_medium_bug'},{data: 'number_of_minor_bug'},{data: 'xdate'}]});
+
+}
+</script>
+<script type="text/javascript">
+function restore_table(table_id){
+document.getElementById(table_id).remove();
+var element = document.createElement("div");	
+element.className = "handsontable";	
+element.id=table_id;
+element.name=table_id;
+var table = document.getElementById("table");
+table.appendChild(element);
+}
+</script>
+
+
+{% load static %}
+<script src="{% static 'jquery.min.js' %}"></script>
+
+{% csrf_token %}
+ <script type="text/javascript">
+ 
+function Save_Project(){
+//console.log(window.hot.getData());
+project = window.hot.getData();
+showBugs();
+
+
+bugs= window.hot1.getData();
+
+bug=[];
+
+
+for (var i in bugs){
+	if(bugs[i][10]=="Yes"){
+	bug.push(bugs[i]);
+	}
+}
+
+
+ $.ajax({
+	    url:"{% url 'login_success' %}",
+	    type: "POST",
+	    data: { "json_items" : JSON.stringify(project),"json_bugs" : JSON.stringify(bug), csrfmiddlewaretoken:$("input[name=csrfmiddlewaretoken]").val()},
+	    success:function(response){
+	        alert("success: " + response);
+	    },
+	    error:function (xhr, textStatus, thrownError){
+	        alert("xhr status: " + xhr.statusText);
+	    },
+
+	});
+
+ showFeature_history();
+    
+}
+
+function getProjects(){
+project = window.hot.getData();
+var result=[];
+for (var i in project ){
+if (result.includes(project[i][1])){
+	
+	
+}
+else {
+	result.push(project[i][1]);	
+}		
+}
+return 	result;
+} 
+function get_start_date(){
+	var data = JSON.parse("{{start|escapejs}}");
+	var class_tests = data['data'];
+	return  class_tests;
+
+}
+function get_end_date(){
+	var data = JSON.parse("{{end|escapejs}}");
+	var class_tests = data['data'];
+	return  class_tests;
+
+}
+
+
+
+</script>
+
+<script>
+
+    
+  
+    
+    
+    
+$('#commentForm').submit(function () {
+	var params = [
+	    {
+	      name: "projects",
+	      value: getProjects()
+	    },
+	    {name: "start_date",value: get_start_date() },
+	    
+	    {name: "end_date",value: get_end_date() }
+	    
+	    ];
+	
+	
+    $(this).append($.map(params, function (param) {
+        return   $('<input>', {
+            type: 'hidden',
+            name: param.name,
+            value: param.value
+        })
+    }))
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br>
+<br>
+<br>
+<br>
+<script>
+updateProjects();
+</script>
+
+
+{% endblock %}

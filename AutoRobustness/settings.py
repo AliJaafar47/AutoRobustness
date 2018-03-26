@@ -16,6 +16,9 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+DATA_UPLOAD_MAX_NUMBER_FIELDS = None
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
@@ -25,7 +28,8 @@ SECRET_KEY = 'w+*_@o$i8i%_36iamgm^7uhtcm32j!i3n2d_a$yjop(*+*_6ar'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -54,7 +58,7 @@ ROOT_URLCONF = 'AutoRobustness.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['./AutoRobustness/templates',],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -75,8 +79,12 @@ WSGI_APPLICATION = 'AutoRobustness.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql', 
+        'NAME': 'AutoRobustness',
+        'USER': 'root',
+        'PASSWORD': 'sah',
+        'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
+        'PORT': '3306',
     }
 }
 
@@ -117,4 +125,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
+import os
+PROJECT_DIR=os.path.dirname(__file__)
+ACCOUNT_LOGOUT_REDIRECT_URL ='/accounts/login'
+LOGIN_REDIRECT_URL = '/accounts/login'
+LOGIN_URL = '/accounts/login'
+LOGIN_REDIRECT_URL = 'login_success'
+
 STATIC_URL = '/static/'
+
+# Add these new lines then run manage.py collectstatics it will create a folder called staticfiles
+# contains all static files
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')

@@ -1,0 +1,14 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<h1>Generator of report</h1>
+
+{% for project in projects_list.prj_list %}
+<a> {{project.projectName}}</a>
+{% endfor %}
+
+
+
+
+
+{% endblock %}
