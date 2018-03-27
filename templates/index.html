@@ -1,14 +1,17 @@
 {% extends "base_generic.html" %}
-
-{% block content %}
-<h1>Generator of report</h1>
-
-{% for project in projects_list.prj_list %}
-<a> {{project.projectName}}</a>
-{% endfor %}
-
-
-
-
-
+{% block menubar %}
+{% if user.is_authenticated %}
+<li>
+ {% if user.is_staff %}
+<a href="{% url 'admin:index' %}">  Go to Admin page  </a> 
+{% endif %}
+ &nbsp;		&nbsp; 	
+User: {{ user.get_username }} &nbsp; <a href="{% url 'logout' %}?next={% url 'login' %}">  Logout  </a> &nbsp; &nbsp; &nbsp;</li> 
+<br>
+{% endif %} 
 {% endblock %}
+{% block other%}
+<br>
+<a align="center" style="color:red;">{{mess}}</a>
+{% endblock %}
+<br>
