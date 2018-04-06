@@ -1,0 +1,65 @@
+{% extends "base_generic.html" %}
+
+{% block menubar %}
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+
+ 
+<br>
+ 
+{% endblock %}
+{% block other%}
+<br>
+<a align="center" style="color:red;">{{mess}}</a>
+{% endblock %}
+<br>
+
+{% block content %}
+<script type="text/javascript">   
+    $( document ).ready(function() {
+       setInterval(function(){
+            $.getJSON("{% url 'update' %}",
+                    function (data) {
+                        var json = data['latest_results_list'];
+                        var tr;
+                         $('#myTable tbody').html("");
+                        for (var i = 0; i < json.length; i++) {
+                            tr = $('<tr/>');
+                            tr.append("<td>" + json[i].step_number + "</td>");
+                            tr.append("<td>" + json[i].name + "</td>");
+                            tr.append("<td>" + json[i].description + "</td>");
+                            tr.append("<td>" + json[i].state + "</td>");
+                             $('#myTable tbody').append(tr);
+
+                        }
+                    });
+       },5000);
+    });
+
+</script>
+
+
+<table id ='myTable'>
+    <thead>
+    <tr>
+      <th>Step Number</th>
+      <th>Name</th>
+      <th>Description</th>
+      <th>State</th>
+    </tr>
+    </thead>
+    <tbody >
+         {% for b in latest_results_list %}
+             <tr>
+             <td>{{ b.step_number }}</td>
+             <td>{{ b.name }}</td>
+             <td>{{ b.description }}</td>
+             <td>{{ b.state }}</td>
+             </tr>                 
+         {% endfor %}
+    </tbody >        
+</table>
+
+
+
+{% endblock %}

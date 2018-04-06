@@ -1,17 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
+  {% load static %}
+  <script src="{% static 'dist/jquery-1.12.3.min.js' %}"></script>
   
   
   <!-- Add additional CSS in static file -->
-  {% load static %}
-  <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
-
-  
-  
-  
-
 
 
 <style type="text/css">
@@ -48,9 +42,9 @@
 		  
 		  <h1>SoftAtHome Auto-Robustness</h1>
 		  <br>
-		  <p >version : 1.0.0 </p>
+		  <p >version : 1.0 </p>
 		<br>
-		<br>
+
     {% block other %}
 
     {% endblock %}
