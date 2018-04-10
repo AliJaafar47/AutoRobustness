@@ -102,21 +102,30 @@ class Step(models.Model):
             "tests" : self.name,
             }
         
+class Project_result(models.Model):
+    project_result_id = models.CharField(max_length=200,unique=True, help_text="ID")
+    
+    def __str__(self):
+        return self.project_result_id
+        
 class Test_Result(models.Model):
     name = models.CharField(max_length=200, help_text="Name of the Test ")
-    ID = models.AutoField(primary_key=True)
+    test_id = models.AutoField(primary_key=True)
     state = models.CharField(max_length=200, help_text="State",default="Unfinished")
     metrics = models.ManyToManyField(Metric)
+    progress = models.CharField(max_length=200, help_text="progress",default="0")
     
     def __str__(self):
         return self.name
     
 class Step_Result(models.Model):
-    ID = models.ManyToManyField(Test_Result)
+    project_result = models.ForeignKey('Project_result', on_delete=models.SET_NULL, null=True)
+    test_result = models.ManyToManyField(Test_Result)
     name = models.CharField(max_length=200, help_text="Name of the Step")
     description = models.CharField(max_length=5000,help_text="Short Description for Test")
     step_number = models.IntegerField(help_text="Number Of Step")
     state = models.CharField(max_length=200, help_text="State",default="Unfinished")
+    progress = models.CharField(max_length=200, help_text="progress",default="0")
     
     def __str__(self):
         return self.name
@@ -127,6 +136,7 @@ class Step_Result(models.Model):
             "description":self.description,
             "step_number":self.step_number,
             "state" : self.state,
+            "progress":self.progress,
             }
     
     

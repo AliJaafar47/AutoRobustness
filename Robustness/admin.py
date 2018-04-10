@@ -1,5 +1,5 @@
 from django.contrib import admin
-from . models import Project , Class , Step , Test,Metric,Test_Result,Step_Result
+from . models import Project , Class , Step , Test,Metric,Test_Result,Step_Result,Project_result
 # Register your models here.
 
 class ProjectAdmin(admin.ModelAdmin):
@@ -30,6 +30,7 @@ admin.site.register(Step, StepAdmin)
 admin.site.register(Metric)
 admin.site.register(Test_Result)
 admin.site.register(Step_Result)
+admin.site.register(Project_result)
 #admin.site.register(Class)
 
 
