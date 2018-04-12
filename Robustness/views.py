@@ -1,16 +1,18 @@
-from django.shortcuts import render
-from django.shortcuts import redirect
-from django.contrib.auth.decorators import login_required
-from django.template import RequestContext
 import os
 import subprocess
-from .models import Project, Step,Test_Result,Step_Result,Project_result
-from _tracemalloc import start
-from django.http import JsonResponse
 import time
-import threading
 import time
 
+from _tracemalloc import start
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import redirect
+from django.shortcuts import render
+from django.template import RequestContext
+
+from .models import Project, Step, Test_Result, Step_Result, Project_result
+
+#from .threads import WebUiThread
 
 
 # Create your views here.
@@ -62,73 +64,69 @@ def start_test(request):
     # Project ID format : Name + time of the execution 
     current_time = time.localtime()
     now = time.strftime('%d-%m-%YT%H:%M:%S', current_time)
-    
     global project_id
     project_id = project+"_"+now 
-    
     project_result = Project_result(project_result_id = project_id)
     project_result.save()
     
+    
+    
     for i in steps :
-        #test_list = [ob for ob in i.tests]
-        test_list = [] 
+        test_list = []
+        state_list = [] 
         test_list_name = []
         for j in i.tests.all() :
+            #creating tests
             metric_list = j.metrics.all()
-            #print(metric_list)
             oneTest  = Test_Result(name = j.name)
             oneTest.save()
             print(metric_list)
-            
+            print(oneTest.test_id)            
             for k in metric_list:
-                #oneMetric = Metric.objects.get(name=)
                 oneTest.metrics.add(k)
-            
             test_list.append(oneTest)
             test_list_name.append(oneTest.name)
             
+            #prepare test to start
+            #TODO create function to start test by name with delay start and time of execution and class
+            state_list.append("Unfinished")
         description_step = ",".join(test_list_name)
-        
-        oneStep = Step_Result(project_result=project_result ,name=i.name,description=description_step,step_number=i.step_number)
+        state_step = ','.join(state_list)    
+        #creating steps
+        oneStep = Step_Result(project_result=project_result ,state = state_step,name=i.name,description=description_step,step_number=i.step_number)
         oneStep.save()
         for j in test_list:
-           oneStep.test_result.add(j)   
-    ste = Step_Result.objects.all().filter(project_result=project_result).order_by('step_number')
+           oneStep.test_result.add(j)
+           
+           
+    #test to start a thread for webUi tests
     
-    #example = ThreadingExample()
+           
+    # Sending all steps to the front          
+    ste = Step_Result.objects.all().filter(project_result=project_result).order_by('step_number')
     return render(request,'test.html',context={'mess':message,'latest_results_list':ste,"project_name":project})
 
 def update(request):
     project_result = Project_result.objects.get(project_result_id=project_id)
+    steps = Step_Result.objects.all().filter(project_result=project_result).order_by('step_number')
+    for i in  steps :
+        total_state=[]
+        total_progress=0
+        k = 0
+        for j in i.test_result.all():
+            total_state.append(j.state)
+            k=k+1
+            total_progress = total_progress+int(j.progress)
+        
+        progress = int(total_progress / k) 
+            
+        new = ",".join(total_state)
+        i.update_state(new)
+        i.update_progress(progress)
+        
+            
+     
     results = [ob.as_json() for ob in Step_Result.objects.all().filter(project_result=project_result).order_by('step_number')]
     return JsonResponse({'latest_results_list':results})
-
-class ThreadingExample(object):
-    """ Threading example class
-    The run() method will be started and it will run in the background
-    until the application exits.
-    """
-
-    def __init__(self, interval=1):
-        """ Constructor
-        :type interval: int
-        :param interval: Check interval, in seconds
-        """
-        self.interval = interval
-
-        thread = threading.Thread(target=self.run, args=())
-        thread.daemon = True                            # Daemonize thread
-        thread.start()                                  # Start the execution
-
-    def run(self):
-        """ Method that runs forever """
-        i=0
-        while i<200:
-            # Do something
-            print('Doing something imporant in the background')
-
-            time.sleep(self.interval)
-            i=i+1
-
 
 

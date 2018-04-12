@@ -1,7 +1,9 @@
 from django.contrib import admin
-from . models import Project , Class , Step , Test,Metric,Test_Result,Step_Result,Project_result
-# Register your models here.
 
+from . models import Project , Class , Step , Test, Metric, Test_Result, Step_Result, Project_result
+
+
+# Register your models here.
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ('name','classe')
     fields = ('name', 'classe')

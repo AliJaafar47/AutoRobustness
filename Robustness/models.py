@@ -1,10 +1,12 @@
-from django.db import models
-from django.urls import reverse #Used to generate URLs by reversing the URL patterns
 import uuid
-from django.template.defaultfilters import default
-from apt_pkg import Description
-# Create your models here.
 
+from apt_pkg import Description
+from django.db import models
+from django.template.defaultfilters import default
+from django.urls import reverse  # Used to generate URLs by reversing the URL patterns
+
+
+# Create your models here.
 class Class(models.Model):
     name = models.CharField(max_length=200, unique=True,help_text="Name of Project class") 
 
@@ -126,6 +128,13 @@ class Step_Result(models.Model):
     step_number = models.IntegerField(help_text="Number Of Step")
     state = models.CharField(max_length=200, help_text="State",default="Unfinished")
     progress = models.CharField(max_length=200, help_text="progress",default="0")
+    
+    def update_state(self,new_state):
+        
+        Step_Result.objects.filter(project_result=self.project_result,name=self.name).update(state = new_state)
+            
+    def update_progress(self,new_progress):
+        Step_Result.objects.filter(project_result=self.project_result,name=self.name).update(progress = str(new_progress))
     
     def __str__(self):
         return self.name

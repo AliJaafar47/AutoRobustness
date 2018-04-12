@@ -13,20 +13,29 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-class Test(unittest.TestCase):   
- # Say the time limit is 15 minutes
-    
-    def setUp(self):
-        chrome_options = webdriver.ChromeOptions()
-        self.driver = webdriver.Chrome()
-        #self.driver.maximize_window()
+# importing the model of django app 
+class TestWebUi():   
+
+    # test_time : the approximative time for test , delay time : the waiting time before start the test
+    def __init__(self,test_time,delay_time,class_name,IDTable):
+        self.class_name = class_name
+        self.test_time = test_time
+        self.delay_time = delay_time
+        self.table = Test_Result.objects.get(test_id=IDTable)
         
+        #wait for delay_time
+        
+        time.sleep(self.delay_time)
+        chrome_options = webdriver.ChromeOptions()
+        self.driver = webdriver.Chrome() 
+
    
-    def testName(self):
-        timeout = time.time() + 20000
+    def startTest(self):
+        self.table.update(state="starting test")
+        timeout = time.time() + self.test_time
         print(time.time())
         print(timeout)
-        while time.time()< timeout :
+        while time.time() < timeout :
             def random_generator(size=6, chars=string.ascii_uppercase):
                 return ''.join(random.choice(chars) for x in range(size))
             print(random_generator())
@@ -99,10 +108,6 @@ class Test(unittest.TestCase):
         ##self.driver.execute_script("document.getElementByName('DHCPLeaseIPAddress')[1].style.top = 0;")
         ##time.sleep(3)
         
-            
-            
-    
-            
                 validButton = self.driver.find_element_by_xpath('//*[@id="current-page"]/div/ul/div/div/div[2]/div[1]/a[2]/span')
                 validButton.click()
                 time.sleep(3)
@@ -153,6 +158,7 @@ class Test(unittest.TestCase):
                 plagePort1 = self.driver.find_element_by_name('entryPort')    
                 plagePort1.send_keys('5001')
                 time.sleep(3)
+                
             ##plagePort2 = self.driver.find_element_by_name('destinationPort')    
             ##plagePort2.send_keys('5010')
             ##time.sleep(3)
@@ -161,15 +167,16 @@ class Test(unittest.TestCase):
                 time.sleep(5)
             except :
                 print("element not found or connexion down")
-            
-        
-        
-    def tearDown(self):
+    def endTest(self):
+        self.table.update(state="Ending test")
         self.driver.close()
         
-        
-if __name__ == "__main__":
-    unittest.main()
+
+
+
+
+
+
     
     
     
