@@ -1,7 +1,8 @@
-from selenium import webdriver
 
+import time 
 
-options = webdriver.ChromeOptions()
-options.add_experimental_option("excludeSwitches", ["ignore-certificate-errors"])
-browser = webdriver.Chrome(chrome_options=options)
-browser.get('https://www.google.com')
+timeout = time.time() + 5
+while time.time() < timeout :
+    percentage = str((time.time() / timeout))[9:11]
+
+    print(percentage)

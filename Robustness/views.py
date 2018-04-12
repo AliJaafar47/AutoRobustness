@@ -11,8 +11,7 @@ from django.shortcuts import render
 from django.template import RequestContext
 
 from .models import Project, Step, Test_Result, Step_Result, Project_result
-
-#from .threads import WebUiThread
+from .threads import WebUiThread
 
 
 # Create your views here.
@@ -87,6 +86,12 @@ def start_test(request):
             test_list.append(oneTest)
             test_list_name.append(oneTest.name)
             
+            #print(oneTest.name)
+            
+            #test to start a thread for webUi tests
+            if (oneTest.name == "WEBUI"):
+                a = WebUiThread(100,0,"Swiss",oneTest.test_id)
+            
             #prepare test to start
             #TODO create function to start test by name with delay start and time of execution and class
             state_list.append("Unfinished")
@@ -99,9 +104,8 @@ def start_test(request):
            oneStep.test_result.add(j)
            
            
-    #test to start a thread for webUi tests
-    
-           
+
+      
     # Sending all steps to the front          
     ste = Step_Result.objects.all().filter(project_result=project_result).order_by('step_number')
     return render(request,'test.html',context={'mess':message,'latest_results_list':ste,"project_name":project})

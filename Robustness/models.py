@@ -1,9 +1,8 @@
-import uuid
-
 from apt_pkg import Description
 from django.db import models
 from django.template.defaultfilters import default
 from django.urls import reverse  # Used to generate URLs by reversing the URL patterns
+import uuid
 
 
 # Create your models here.
