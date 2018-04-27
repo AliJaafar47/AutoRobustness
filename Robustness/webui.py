@@ -39,31 +39,7 @@ class TestWebUi():
             percentage = str((time.time() / timeout))[9:11]
             self.table.update(progress=str(percentage))
             
-            """
-            try:
-                cfg_dict = {}
-                lst = []
-                cfg_file = open('ConfigFile','r')
-                for line in cfg_file:
-                    if '-' and not '=' in  line:
-                        line = line.split()
-                        line.append('None')
-                        lst.append( line)
-                    else:
-                        line = ''.join(line.strip().split('=')).split()
-                        lst.append(line)
-                cfg_file.close()
-                for item in lst:
-                    cfg_dict[item[0]] = item[1]
-                print(cfg_dict['url'])
-                print(cfg_dict['pass'])
-                v1 = cfg_dict['url']
-                v2 = cfg_dict['pass']
-    
-   
-            except IOError :
-                print("can't open the file or file didn't exist")  
-            """   
+            
             self.table.update(state="Browsing Web ui test")
             try:
                 self.driver.get("http://192.168.3.1")
@@ -81,7 +57,7 @@ class TestWebUi():
             percentage = str((time.time() / timeout))[9:11]
             self.table.update(progress=str(percentage))
          
-            '''
+            
             speedTest = self.driver.find_element_by_css_selector('[class="speed-check text"]')
             speedTest.click()
             time.sleep(3)
@@ -92,7 +68,7 @@ class TestWebUi():
         
             self.driver.back()
             time.sleep(3)
-            '''
+            
             try :
                 reseauWi = self.driver.find_element_by_css_selector('[class="navigation-item menu-network"]')
                 reseauWi.click()
@@ -103,29 +79,32 @@ class TestWebUi():
                 time.sleep(3)
     
                 self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        
+                    
                 selectOp = self.driver.find_element_by_css_selector('[data-name="DHCPLeaseNewDevice"]')
                 selectOp.click()
                 time.sleep(3)
-                op3 = self.driver.find_element_by_css_selector('body > div.swc-dropdown-overlay.dhcplease-device-selection.no-highlighting > ul > li:nth-child(2)')
-                op3.click()
-                time.sleep(5)
-        ##self.driver.execute_script("document.getElementByName('DHCPLeaseIPAddress')[1].style.top = 0;")
-        ##time.sleep(3)
+                try :
+                    op3 = self.driver.find_element_by_css_selector('body > div.swc-dropdown-overlay.dhcplease-device-selection.no-highlighting > ul > li:nth-child(2)')
+                    op3.click()
+                    time.sleep(5)
+                except:
+                    print("empty device select option")
+                    pass
         
-                validButton = self.driver.find_element_by_xpath('//*[@id="current-page"]/div/ul/div/div/div[2]/div[1]/a[2]/span')
-                validButton.click()
-                time.sleep(3)
-                myWindowHandle = self.driver.current_window_handle
-                self.driver.switch_to.window(myWindowHandle)
-                time.sleep(3)
-                popup=self.driver.find_element_by_xpath('/html/body/div[5]/div/div[3]/a/span')
-                popup.click()
-                time.sleep(3)
-            ##self.driver.back()
-            ##time.sleep(3)"""
-        
-        
+                try:
+                    validButton = self.driver.find_element_by_xpath('//*[@id="current-page"]/div/ul/div/div/div[2]/div[1]/a[2]/span')
+                    validButton.click()
+                    time.sleep(3)
+                    myWindowHandle = self.driver.current_window_handle
+                    self.driver.switch_to.window(myWindowHandle)
+                    time.sleep(3)
+                    popup=self.driver.find_element_by_xpath('/html/body/div[5]/div/div[3]/a/span')
+                    popup.click()
+                    time.sleep(3)
+                except:
+                    print("button hide no such configuration")
+                    pass
+                    
             ##urlGoogle = self.driver.get('http://www.google.com')
                 self.table.update(state="Googling")
                 self.driver.execute_script("$(window.open('http://www.google.com'))")
