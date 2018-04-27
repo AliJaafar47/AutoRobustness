@@ -12,7 +12,7 @@ class MyThread_Server(threading.Thread):
         file = open("log.txt","w")
         file.write("")
         file.close()     
-      
+          
       
     def run(self):
         host = '192.168.1.16'
