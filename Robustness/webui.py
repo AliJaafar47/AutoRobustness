@@ -12,24 +12,39 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+from .models import Test_Result
 
-class Test(unittest.TestCase):   
- # Say the time limit is 15 minutes
-    
-    def setUp(self):
-        chrome_options = webdriver.ChromeOptions()
-        self.driver = webdriver.Chrome()
-        #self.driver.maximize_window()
+
+# importing the model of django app 
+class TestWebUi():   
+
+    # test_time : the approximative time for test , delay time : the waiting time before start the test
+    def __init__(self,test_time,delay_time,class_name,IDTable):
+        self.class_name = class_name
+        self.test_time = test_time
+        self.delay_time = delay_time
+        self.table = Test_Result.objects.filter(test_id=IDTable)
         
+        #wait for delay_time
+        time.sleep(self.delay_time)
+        chrome_options = webdriver.ChromeOptions()
+        self.driver = webdriver.Chrome() 
+
    
-    def testName(self):
-        timeout = time.time() + 20000
+    def startTest(self):
+        self.table.update(state="starting test")
+        timeout = time.time() + self.test_time
         print(time.time())
         print(timeout)
-        while time.time()< timeout :
+        while time.time() < timeout :
             def random_generator(size=6, chars=string.ascii_uppercase):
                 return ''.join(random.choice(chars) for x in range(size))
             print(random_generator())
+            
+            percentage = str((time.time() / timeout))[9:11]
+            self.table.update(progress=str(percentage))
+            
+            """
             try:
                 cfg_dict = {}
                 lst = []
@@ -52,9 +67,11 @@ class Test(unittest.TestCase):
     
    
             except IOError :
-                print("can't open the file or file didn't exist")         
+                print("can't open the file or file didn't exist")  
+            """   
+            self.table.update(state="Browsing Web ui test")
             try:
-                self.driver.get(v1)
+                self.driver.get("http://192.168.3.1")
                 time.sleep(2)
        
                 password = self.driver.find_element_by_name('login-password')
@@ -65,7 +82,9 @@ class Test(unittest.TestCase):
                 time.sleep(5)
             except : 
                 print('invalid url or credentials')
-        
+            
+            percentage = str((time.time() / timeout))[9:11]
+            self.table.update(progress=str(percentage))
          
             '''
             speedTest = self.driver.find_element_by_css_selector('[class="speed-check text"]')
@@ -99,10 +118,6 @@ class Test(unittest.TestCase):
         ##self.driver.execute_script("document.getElementByName('DHCPLeaseIPAddress')[1].style.top = 0;")
         ##time.sleep(3)
         
-            
-            
-    
-            
                 validButton = self.driver.find_element_by_xpath('//*[@id="current-page"]/div/ul/div/div/div[2]/div[1]/a[2]/span')
                 validButton.click()
                 time.sleep(3)
@@ -117,13 +132,18 @@ class Test(unittest.TestCase):
         
         
             ##urlGoogle = self.driver.get('http://www.google.com')
-        
+                self.table.update(state="Googling")
                 self.driver.execute_script("$(window.open('http://www.google.com'))")
                 time.sleep(5) 
                 self.driver.current_window_handle
                 self.driver.switch_to_window(self.driver.window_handles[-1])
                 time.sleep(3) 
-
+                
+                
+                percentage = str((time.time() / timeout))[9:11]
+                self.table.update(progress=str(percentage))
+                
+                
                 search_box = self.driver.find_element_by_name('q')
                 search_box.send_keys('swisscom')
                 assert "No results found." not in self.driver.page_source
@@ -132,6 +152,7 @@ class Test(unittest.TestCase):
         
                 self.driver.switch_to_window(self.driver.window_handles[0])
                 time.sleep(5)
+                self.table.update(state="Youtube")
                 self.driver.execute_script("$(window.open('https://www.youtube.com/watch?v=nDjpGV-5rHk'))")
                 time.sleep(2)
                 self.driver.current_window_handle
@@ -142,6 +163,12 @@ class Test(unittest.TestCase):
                 print (self.driver.title)
                 tabPort = self.driver.find_element_by_xpath('//*[@id="current-page"]/div/ul/li[2]/a/span')
                 tabPort.click()
+                
+                percentage = str((time.time() / timeout))[9:11]
+                self.table.update(progress=str(percentage))
+    
+        
+        
         ##self.driver.execute_script("arguments[0].scrollIntoView();", tabPort);
                 time.sleep(3)
                 ajoutRegle = self.driver.find_element_by_xpath('//*[@id="current-page"]/div/ul/div/div/div[2]/a/span')
@@ -153,6 +180,10 @@ class Test(unittest.TestCase):
                 plagePort1 = self.driver.find_element_by_name('entryPort')    
                 plagePort1.send_keys('5001')
                 time.sleep(3)
+                
+                
+                percentage = str((time.time() / timeout))[9:11]
+                self.table.update(progress=str(percentage))
             ##plagePort2 = self.driver.find_element_by_name('destinationPort')    
             ##plagePort2.send_keys('5010')
             ##time.sleep(3)
@@ -161,15 +192,18 @@ class Test(unittest.TestCase):
                 time.sleep(5)
             except :
                 print("element not found or connexion down")
-            
-        
-        
-    def tearDown(self):
+                
+    def endTest(self):
+        self.table.update(state="Ending test")
+        self.table.update(progress=str(100))
         self.driver.close()
         
-        
-if __name__ == "__main__":
-    unittest.main()
+
+
+
+
+
+
     
     
     
