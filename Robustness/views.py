@@ -1,17 +1,16 @@
-import os
-import subprocess
-import time
-import time
-
 from _tracemalloc import start
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.template import RequestContext
+import os
+import subprocess
+import time
+import time
 
 from .models import Project, Step, Test_Result, Step_Result, Project_result
-from .threads import WebUiThread
+from .threads import WebUiThread, Synchronize_Steps
 
 
 # Create your views here.
@@ -51,7 +50,7 @@ def after_login(request):
     projects = Project.objects.all().order_by('-name')
     return render(request,'index.html',context={'mess':message,'projects':projects})
 
-
+@login_required(login_url='/accounts/login/')
 def start_test(request):
     
     message = "Test Page"
@@ -67,6 +66,7 @@ def start_test(request):
     project_id = project+"_"+now 
     project_result = Project_result(project_result_id = project_id)
     project_result.save()
+    class_name = Project.objects.get(name = project).classe.name
     
     
     
@@ -85,16 +85,13 @@ def start_test(request):
                 oneTest.metrics.add(k)
             test_list.append(oneTest)
             test_list_name.append(oneTest.name)
-            
-            #print(oneTest.name)
-            
-            #test to start a thread for webUi tests
-            if (oneTest.name == "WEBUI"):
-                a = WebUiThread(100,0,"Swiss",oneTest.test_id)
-            
-            #prepare test to start
-            #TODO create function to start test by name with delay start and time of execution and class
             state_list.append("Unfinished")
+            
+            
+            # starting test ( function to start one test )
+            #test_starter(i,class_name,oneTest)
+            
+            
         description_step = ",".join(test_list_name)
         state_step = ','.join(state_list)    
         #creating steps
@@ -108,7 +105,14 @@ def start_test(request):
       
     # Sending all steps to the front          
     ste = Step_Result.objects.all().filter(project_result=project_result).order_by('step_number')
-    return render(request,'test.html',context={'mess':message,'latest_results_list':ste,"project_name":project})
+
+    
+    # Synchronize_Steps a deamon that synchronize all tests in the steps
+    # time to execute one tests (step)
+    test_time = 20
+    Synchronize_Steps(ste,test_time,class_name)
+    
+    return render(request,'test.html',context={'mess':message,'latest_results_list':ste,"project_name":project,"project_id":project_id})
 
 def update(request):
     project_result = Project_result.objects.get(project_result_id=project_id)
@@ -132,5 +136,10 @@ def update(request):
      
     results = [ob.as_json() for ob in Step_Result.objects.all().filter(project_result=project_result).order_by('step_number')]
     return JsonResponse({'latest_results_list':results})
+
+
+
+
+    
 
 

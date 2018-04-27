@@ -37,6 +37,7 @@ class Metric(models.Model):
     NA="N/A"
     METRICS_CHOICES = ((THROUGHPUT, 'THROUGHPUT'),(PACKET_LOSS, 'PACKET_LOSS'),(NUMBER_OF_CONNECTIONS, 'NUMBER_OF_CONNECTIONS'),(PESQ_UPSTREAM, 'PESQ_UPSTREAM'),(PESQ_DOWNSTREAM, 'PESQ_DOWNSTREAM'),(ONE_WAY_DELAY_UPSTREAM, 'ONE_WAY_DELAY_UPSTREAM'),(ONE_WAY_DELAY_DOWNSTREAM, 'ONE_WAY_DELAY_DOWNSTREAM'),(NA, 'N/A'))
     name = models.CharField(max_length=100,unique=True, choices=METRICS_CHOICES)
+    values = models.CharField(max_length=5000,default="",help_text="Values of one Metric") 
     def __str__(self):
         return self.name
     
@@ -127,6 +128,7 @@ class Step_Result(models.Model):
     step_number = models.IntegerField(help_text="Number Of Step")
     state = models.CharField(max_length=200, help_text="State",default="Unfinished")
     progress = models.CharField(max_length=200, help_text="progress",default="0")
+    metrics = models.CharField(max_length=200, help_text="metrics",default="N/A")
     
     def update_state(self,new_state):
         

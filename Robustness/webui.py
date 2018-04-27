@@ -19,14 +19,10 @@ from .models import Test_Result
 class TestWebUi():   
 
     # test_time : the approximative time for test , delay time : the waiting time before start the test
-    def __init__(self,test_time,delay_time,class_name,IDTable):
+    def __init__(self,test_time,class_name,IDTable):
         self.class_name = class_name
         self.test_time = test_time
-        self.delay_time = delay_time
         self.table = Test_Result.objects.filter(test_id=IDTable)
-        
-        #wait for delay_time
-        time.sleep(self.delay_time)
         chrome_options = webdriver.ChromeOptions()
         self.driver = webdriver.Chrome() 
 
@@ -34,8 +30,7 @@ class TestWebUi():
     def startTest(self):
         self.table.update(state="starting test")
         timeout = time.time() + self.test_time
-        print(time.time())
-        print(timeout)
+
         while time.time() < timeout :
             def random_generator(size=6, chars=string.ascii_uppercase):
                 return ''.join(random.choice(chars) for x in range(size))
