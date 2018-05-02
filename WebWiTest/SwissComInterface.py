@@ -22,7 +22,7 @@ class Test(unittest.TestCase):
         #self.driver.maximize_window()
         
    
-    def testName(self):
+    def testName(self): 
         timeout = time.time() + 20000
         print(time.time())
         print(timeout)
