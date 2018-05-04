@@ -34,7 +34,7 @@ class TestWebUi():
             favorisWi.click()
             time.sleep(3)
             self.driver.back()
-            time.sleep(3)
+            time.sleep(3) 
             
             
         ########################################  Réseau ########################################################## 
