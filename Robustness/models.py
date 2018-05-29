@@ -35,11 +35,47 @@ class Metric(models.Model):
     ONE_WAY_DELAY_UPSTREAM = "ONE_WAY_DELAY_UPSTREAM"
     ONE_WAY_DELAY_DOWNSTREAM = "ONE_WAY_DELAY_DOWNSTREAM"
     NA="N/A"
+    
     METRICS_CHOICES = ((THROUGHPUT, 'THROUGHPUT'),(PACKET_LOSS, 'PACKET_LOSS'),(NUMBER_OF_CONNECTIONS, 'NUMBER_OF_CONNECTIONS'),(PESQ_UPSTREAM, 'PESQ_UPSTREAM'),(PESQ_DOWNSTREAM, 'PESQ_DOWNSTREAM'),(ONE_WAY_DELAY_UPSTREAM, 'ONE_WAY_DELAY_UPSTREAM'),(ONE_WAY_DELAY_DOWNSTREAM, 'ONE_WAY_DELAY_DOWNSTREAM'),(NA, 'N/A'))
     name = models.CharField(max_length=100,unique=True, choices=METRICS_CHOICES)
-    values = models.CharField(max_length=5000,default="",help_text="Values of one Metric") 
+    values = models.CharField(max_length=5000,default="N/A",help_text="Value of one Metric") 
+    
+    
+    def update_values(self,new_values):
+        Metric.objects.filter(id=self.id).update(values = str(new_values))
+
+    
+    
+    
+    
     def __str__(self):
         return self.name
+    
+    
+    
+    
+class Metric_Result(models.Model):
+    name = models.CharField(max_length=100)
+    values = models.CharField(max_length=5000,default="0",help_text="Values of one Metric") 
+    list_of_values = models.CharField(max_length=5000,default="",help_text="Values of one Metric")
+    
+    def update_values(self,new_values):
+        Metric_Result.objects.filter(id=self.id).update(values = str(new_values))
+
+    def add_all_values (self,new_values):
+        Metric_Result.objects.filter(id=self.id).update(list_of_values = str(new_values))
+        
+    def add_new_value (self,new_values):
+        a = Metric_Result.objects.get(id=self.id)
+        ch = a.list_of_values
+        new = str(new_values) + ','+ch
+        Metric_Result.objects.filter(id=self.id).update(list_of_values = str(new))
+        
+    def __str__(self):
+        return self.name
+    
+    
+    
     
 class Project(models.Model):
     classe = models.ForeignKey('Class', on_delete=models.SET_NULL, null=True)
@@ -71,16 +107,19 @@ class Project(models.Model):
 class Test(models.Model):
     #name = models.CharField(max_length=200,unique=True,help_text="Name of the Test")  
     description = models.CharField(max_length=5000,help_text="Short Description for Test ")
-    VOIP_TEST = 'VOIP_TEST'
+    VOIP_TEST = 'VoIP'
     DATA_LAN_LAN = 'DATA_LAN_LAN'
-    DATA_LAN_WLAN_2_4_Ghz = 'DATA_LAN_WLAN_2.4_Ghz'
+    DATA_LAN_WLAN_2_4_Ghz = 'DATA_LAN_WLAN_2_4_Ghz'
     DATA_LAN_WLAN_5_Ghz = 'DATA_LAN_WLAN_5_Ghz'
     DATA_WAN_WLAN_5_Ghz = 'DATA_WAN_WLAN_5_Ghz'
     P2P_WLAN_5_Ghz = "P2P_WLAN_5_Ghz"
-    IPTV_WLAN_5_Ghz = "IPTV_WLAN_5_Ghz"
-    IPTV_LAN = "IPTV_LAN"
+    
+    IPTV_WLAN_5_Ghz_1 = "1xIPTV_WLAN_5_Ghz"
+    IPTV_WLAN_5_Ghz_2 = "2xIPTV_WLAN_5_Ghz"
+    IPTV_LAN = "2xIPTV_LAN"
+    
     WEBUI = "WEBUI"
-    TEST_CHOICES = ((VOIP_TEST, 'VOIP_TEST'),(DATA_LAN_LAN, 'DATA_LAN_LAN'),(DATA_LAN_WLAN_2_4_Ghz, 'DATA_LAN_WLAN_2.4_Ghz'),(DATA_LAN_WLAN_5_Ghz, 'DATA_LAN_WLAN_5_Ghz'),(DATA_WAN_WLAN_5_Ghz, 'DATA_WAN_WLAN_5_Ghz'),(IPTV_WLAN_5_Ghz, 'IPTV_WLAN_5_Ghz'),(P2P_WLAN_5_Ghz, 'P2P_WLAN_5_Ghz'),(IPTV_LAN, 'IPTV_LAN'),(WEBUI, 'WEBUI'))
+    TEST_CHOICES = ((VOIP_TEST, 'VoIP'),(DATA_LAN_LAN, 'DATA_LAN_LAN'),(DATA_LAN_WLAN_2_4_Ghz, 'DATA_LAN_WLAN_2_4_Ghz'),(DATA_LAN_WLAN_5_Ghz, 'DATA_LAN_WLAN_5_Ghz'),(DATA_WAN_WLAN_5_Ghz, 'DATA_WAN_WLAN_5_Ghz'),(IPTV_WLAN_5_Ghz_1, '1xIPTV_WLAN_5_Ghz'),(IPTV_WLAN_5_Ghz_2, '2xIPTV_WLAN_5_Ghz'),(P2P_WLAN_5_Ghz, 'P2P_WLAN_5_Ghz'),(IPTV_LAN, '2xIPTV_LAN'),(WEBUI, 'WEBUI'))
     name = models.CharField(max_length=50,unique=True, choices=TEST_CHOICES)
     metrics = models.ManyToManyField(Metric) 
     
@@ -114,7 +153,7 @@ class Test_Result(models.Model):
     name = models.CharField(max_length=200, help_text="Name of the Test ")
     test_id = models.AutoField(primary_key=True)
     state = models.CharField(max_length=200, help_text="State",default="Unfinished")
-    metrics = models.ManyToManyField(Metric)
+    metrics = models.ManyToManyField(Metric_Result)
     progress = models.CharField(max_length=200, help_text="progress",default="0")
     
     def __str__(self):
@@ -137,6 +176,10 @@ class Step_Result(models.Model):
     def update_progress(self,new_progress):
         Step_Result.objects.filter(project_result=self.project_result,name=self.name).update(progress = str(new_progress))
     
+    
+    def update_metrics(self,new_metrics):
+        Step_Result.objects.filter(project_result=self.project_result,name=self.name).update(metrics = str(new_metrics))
+    
     def __str__(self):
         return self.name
     
@@ -147,6 +190,7 @@ class Step_Result(models.Model):
             "step_number":self.step_number,
             "state" : self.state,
             "progress":self.progress,
+            "metrics" : self.metrics
             }
     
     

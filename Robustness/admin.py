@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from . models import Project , Class , Step , Test, Metric, Test_Result, Step_Result, Project_result
+from . models import Project , Class , Step , Test, Metric, Test_Result, Step_Result, Project_result,Metric_Result
 
 
 # Register your models here.
@@ -33,6 +33,7 @@ admin.site.register(Metric)
 admin.site.register(Test_Result)
 admin.site.register(Step_Result)
 admin.site.register(Project_result)
+admin.site.register(Metric_Result)
 #admin.site.register(Class)
 
 

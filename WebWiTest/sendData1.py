@@ -6,22 +6,16 @@ import os
 import threading
 
 class MyThread_Server(threading.Thread):
-    
     def __init__(self):
         threading.Thread.__init__(self)
         file = open("log.txt","w")
         file.write("")
         file.close()     
-          
-      
     def run(self):
-        host = '192.168.1.16'
+        host = '192.168.1.105'
         i = 1
-
-
         while True:
             print ('Trying to connect to %s (%i/2)' % (host, i))
-
             try:
                 ssh = paramiko.SSHClient()
                 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -61,12 +55,6 @@ class MyThread_Server(threading.Thread):
                     file.write(ch)
                     file.close()     
                     print (stdout.channel.recv(1024))
-            
-
-                        
-                        
- 
-
 # Disconnect from the host
 #
         print ("Command done, closing SSH connection")
@@ -77,15 +65,24 @@ class MyThread_Server(threading.Thread):
       
 
 class MyThread_Local(threading.Thread):
-    
     def __init__(self):
         threading.Thread.__init__(self)
-      
-      
     def run(self):
-        os.system("iperf -c 192.168.1.16 -i 1 ")
+        os.system("iperf -c 192.168.1.105 -i 1 ")
         
+
+class TestSendData():
+    def __init__(self,ip_dest,login,password):
+        self.ip_dest= ip_dest
+        self.login = login
+        self.password = password
         
+
+
+
+
+
+
 
 a = MyThread_Server()
 a.start()

@@ -10,7 +10,7 @@ class TestWebUi():
         
         self.test_time = test_time
         self.driver = webdriver.Chrome() 
-        self.driver.maximize_window()
+        #self.driver.maximize_window()
 
    
     def startTest(self):
@@ -18,9 +18,9 @@ class TestWebUi():
         while time.time()< timeout :
             try:
                 self.driver.get('http://192.168.1.1')
-                time.sleep(2)
+                time.sleep(4)
                 password = self.driver.find_element_by_id('login_password')
-                password.send_keys('test1234')
+                password.send_keys('admin')
         
                 loginButton = self.driver.find_element_by_id('login_save')
                 loginButton.click()
@@ -36,23 +36,8 @@ class TestWebUi():
             self.driver.back()
             time.sleep(3)
             
-            equipementWi= self.driver.find_element_by_id('devicesListTitle_Fav')
-            equipementWi.click()
-            time.sleep(3)
-            self.driver.back()
-            time.sleep(3)
             
-            installWi= self.driver.find_element_by_id('crossRoadTitle_Fav')
-            installWi.click()
-            time.sleep(3)
-            self.driver.back()
-            time.sleep(3)
             
-            wifiAdvanced= self.driver.find_element_by_id('wifiAdvancedTitle_Fav')
-            wifiAdvanced.click()
-            time.sleep(3)
-            self.driver.back()
-            time.sleep(3)
         ########################################  Réseau local########################################################## 
         
             slideWidget= self.driver.find_element_by_css_selector('[class="navarrow right"]')

@@ -58,6 +58,7 @@ function goBack() {
                             tr.append("<td>" + json[i].description + "</td>");
                             tr.append("<td>" + json[i].state + "</td>");
                             tr.append("<td>" + json[i].progress + " % </td>");
+                            tr.append("<td>" + json[i].metrics + " </td>");
                              $('#myTable tbody').append(tr);
 
                         }
@@ -107,6 +108,7 @@ var x = setInterval(function() {
       <th>Description</th>
       <th>State</th>
       <th>Progress</th>
+      <th>Metrics</th>
     </tr>
     </thead>
     <tbody >
@@ -117,6 +119,7 @@ var x = setInterval(function() {
              <td>{{ b.description }}</td>
              <td>{{ b.state }}</td>
              <td>{{ b.progress }} % </td>
+              <td>{{ b.metrics }} </td>
              </tr>                 
          {% endfor %}
     </tbody >        

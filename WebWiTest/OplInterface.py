@@ -18,7 +18,7 @@ class TestWebUi():
         timeout = time.time() + self.test_time
         while time.time()< timeout :
             try:
-                self.driver.get('http://192.168.3.1')
+                self.driver.get('http://192.168.1.1')
                 time.sleep(2)
                 element = self.driver.find_element_by_id('linkLanguages')
                 hover = ActionChains(self.driver).move_to_element(element)

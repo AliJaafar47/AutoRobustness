@@ -8,6 +8,7 @@ from ssh_decorate import ssh_connect
 import threading
 import time
 import paramiko 
+from .models import Project, Step, Test_Result, Step_Result, Project_result
 
 class P2pTest():
     def __init__(self,name,test_time):
@@ -78,8 +79,9 @@ class GetResult():
     def getResult(self,name):
         stdin, stdout, stderr = self.dssh.exec_command('cat ./torrentfiles/'+name+"_report")
         ch = str(stdout.read(),"utf-8")
-        print (ch)
         return ch
+    
+    
 
 
 
@@ -90,29 +92,75 @@ class TestTorrent():
         self.class_name = class_name
         self.test_time = test_time
         self.table = IDTable
-        #self.table = Test_Result.objects.filter(test_id=IDTable)
+        self.table = Test_Result.objects.get(test_id=IDTable)
+        self.table_one = Test_Result.objects.filter(test_id=IDTable)
         
-        thread_list=[]
-        for i in range(1,self.number_of_files):
-            a = P2pTest("Thread"+str(i),self.test_time)
-            thread_list.append(a.download_thread)
-        [j.join() for j in thread_list]
-        print("all threads are done",flush=True)
-        print("Writing results")
-        for i in range (1,self.number_of_files):
-            b = GetResult()
-            ch = b.getResult("Thread"+str(i))   
-        
-        
-        print("End")
-        
-    def write_result(self):
-        
-        return None
-        
-#b = GetResult()
-#ch = b.getResult("Thread1")         
-a = TestTorrent(20,"FT",2)
+        timeout = time.time()+ self.test_time    
+        while time.time() < timeout :
+            percentage = str((time.time() / timeout))[9:11]
+            self.table_one.update(progress=str(percentage))
+            thread_list=[]
+            
+            #begin downloading
+            self.table_one.update(state="Downloading")
+            
+            
+            for i in range(1,self.number_of_files):
+                percentage = str((time.time() / timeout))[9:11]
+                self.table_one.update(progress=str(percentage))
+                a = P2pTest("Thread"+str(i),self.test_time)
+                thread_list.append(a.download_thread)
+                
+            [j.join() for j in thread_list]
+            print("all threads are done",flush=True)
+            print("Writing results")
+            #Ending downloading
+            self.table_one.update(state="Finish downloading")
+            
+            peers = 0
+            result = 0
+            
+            percentage = str((time.time() / timeout))[9:11]
+            self.table_one.update(progress=str(percentage))
+            
+            throughtput_list = []
+            
+            for i in range (1,self.number_of_files):
+                b = GetResult()
+                ch = b.getResult("Thread"+str(i)) 
+                if ch != "":
+                    peers = peers +1 
+                    result = round(float(ch)) + result
+                    throughtput_list.append(str(float(ch)/1000)[0:4])
+                    
+            #Ending downloading       
+            self.table_one.update(state="Getting results")
+            try :
+                result = result / peers 
+            except :
+                result = 0 
+            result_peers = str(peers)
+            
+            result_throughput = str(result/1000)+" Mbit/s"
+            
+            metrics = self.table.metrics.all()
+            
+            percentage = str((time.time() / timeout))[9:11]
+            self.table_one.update(progress=str(percentage))
+            
+            
+            for j in metrics :
+                if j.name == "THROUGHPUT" :
+                    j.update_values(result_throughput)
+                    j.add_all_values(",".join(throughtput_list))
+                if j.name == "NUMBER_OF_CONNECTION":
+                    j.update_values(result_peers)
+                    
+                    
+        self.table_one.update(state="Finished")
+        self.table_one.update(progress=str(100))
+                    
+
 
 
 

@@ -10,7 +10,7 @@ class TestWebUi():
         
         self.test_time = test_time
         self.driver = webdriver.Chrome() 
-        self.driver.maximize_window()
+        #self.driver.maximize_window()
 
    
     def startTest(self):
