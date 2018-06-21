@@ -115,12 +115,12 @@ class TestSendData():
             percentage = str((time.time() / timeout))[9:11]
             self.table_one.update(progress=str(percentage))
             
-            a = Server(self.iperf_time,"pi","raspberry","192.168.1.105")
+            a = Server(self.iperf_time,"pi","raspberry","192.168.1.21")
             a.start()
             self.table_one.update(state="Connected to Distant Host")
             time.sleep(2)
             self.table_one.update(state="Sending Data")
-            b = Client(self.iperf_time,"pi","raspberry","192.168.1.22","192.168.1.105")
+            b = Client(self.iperf_time,"pi","raspberry","192.168.1.21","192.168.1.28")
             
             time.sleep(2)
             percentage = str((time.time() / timeout))[9:11]

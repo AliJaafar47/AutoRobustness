@@ -184,9 +184,11 @@ class Synchronize_Steps(object):
                 if j == "WEBUI":
                     oneThread = WebUiThread(self.test_time,self.class_name,tableId)
                     jobs.append(oneThread)
-                if j == "VOIP_TEST":
+                    
+                if j == "VoIP":
                     oneThread = VoipThread(self.test_time,self.class_name,tableId)
                     jobs.append(oneThread)
+                    
                 if j == "P2P_WLAN_5_Ghz":
                     oneThread = TorrentThread(self.test_time,self.class_name,tableId)
                     jobs.append(oneThread)

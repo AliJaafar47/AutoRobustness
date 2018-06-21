@@ -196,9 +196,54 @@ class Step_Result(models.Model):
     
     
     
+class Config_IP(models.Model):
+    VOIP_TEST_WAN_IP = 'VOIP_TEST_WAN_IP'
+    
+    DATA_LAN_LAN_IP_1 = 'DATA_LAN_LAN_IP_1'
+    DATA_LAN_LAN_IP_2 = 'DATA_LAN_LAN_IP_2'
+    DATA_LAN_WLAN_2_4_Ghz_IP_1 = 'DATA_LAN_WLAN_2_4_Ghz_IP_1'
+    DATA_LAN_WLAN_2_4_Ghz_IP_2 = 'DATA_LAN_WLAN_2_4_Ghz_IP_2'
+    DATA_LAN_WLAN_5_Ghz_IP_1 = 'DATA_LAN_WLAN_5_Ghz_IP_1'
+    DATA_LAN_WLAN_5_Ghz_IP_2 = 'DATA_LAN_WLAN_5_Ghz_IP_2'
+    DATA_WAN_WLAN_5_Ghz_IP_1 = 'DATA_WAN_WLAN_5_Ghz_IP_1'
+    DATA_WAN_WLAN_5_Ghz_IP_2 = 'DATA_WAN_WLAN_5_Ghz_IP_2'
+    P2P_WLAN_5_Ghz_IP = "P2P_WLAN_5_Ghz_IP"
     
     
+    IPTV_WLAN_5_Ghz_1_IP = "IPTV_WLAN_5_Ghz_1_IP"
+    IPTV_WLAN_5_Ghz_2_IP = "IPTV_WLAN_5_Ghz_2_IP"
+    IPTV_LAN_IP = "IPTV_LAN_IP"
     
+    WEBUI_IP = "WEBUI_IP"
+    TEST_CHOICES = ((VOIP_TEST_WAN_IP, 'VOIP_TEST_WAN_IP'),
+                    (DATA_LAN_LAN_IP_1, 'DATA_LAN_LAN_IP_1'),
+                    (DATA_LAN_LAN_IP_2, 'DATA_LAN_LAN_IP_2'),
+                    (DATA_LAN_WLAN_2_4_Ghz_IP_1, 'DATA_LAN_WLAN_2_4_Ghz_IP_1'),
+                    (DATA_LAN_WLAN_2_4_Ghz_IP_2, 'DATA_LAN_WLAN_2_4_Ghz_IP_2'),
+                    (DATA_LAN_WLAN_5_Ghz_IP_1, 'DATA_LAN_WLAN_5_Ghz_IP_1'),
+                    (DATA_LAN_WLAN_5_Ghz_IP_2, 'DATA_LAN_WLAN_5_Ghz_IP_2'),
+                    
+                    (DATA_WAN_WLAN_5_Ghz_IP_1, 'DATA_WAN_WLAN_5_Ghz_IP_1'),
+                    (DATA_WAN_WLAN_5_Ghz_IP_2, 'DATA_WAN_WLAN_5_Ghz_IP_2'),
+                    
+                    (IPTV_WLAN_5_Ghz_1_IP, 'IPTV_WLAN_5_Ghz_1_IP'),
+                    (IPTV_WLAN_5_Ghz_2_IP, 'IPTV_WLAN_5_Ghz_2_IP'),
+                    
+                    (IPTV_LAN_IP, 'IPTV_LAN_IP'),
+                    (WEBUI_IP, 'WEBUI_IP'))
     
+    name = models.CharField(max_length=50,unique=True, choices=TEST_CHOICES)
+    ip = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return (self.name+"  : "+self.ip)
+
+
+class Config_time(models.Model):
+    test_time = models.TimeField(blank=True, null=True)
+    name=models.CharField(max_length=50,unique=True)
+    def __str__(self):
+        return (self.name +'  '+ str(self.test_time))
+
     
     

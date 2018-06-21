@@ -10,21 +10,37 @@
 <br>
 <br>
 
-
+<form method="POST" action="{% url 'login_success' %}">
+{% csrf_token %}
 <HorizontalPanel>
-<button style="float: right;"  class="button2" onclick="addCell()">Add Step</button>
+<button type="button" style="float: right;"  class="button2" onclick="addCell();">Add Step</button>
  &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;
-<button style="float: left;"  class="button2" onclick="addCell()">Back</button>
+<button type="submit" style="float: left;"  class="button2" >Back</button>
 </HorizontalPanel>
 
 
+
+
+
+
+
+</form>
 <br>
 <br>
-<br>
+<script>
+console.log("{{test_time}}");
+
+
+</script>
+
+<h4 align="center"  >Step's Time
+ &nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp; 
+ <input type="time" value={{test_time}} id='test_time' min="00:00:00" max="12:59:59" class="without_ampm"  step="1" />
+ </h4>
+
 <br>
 
 <table id="Mytable" class='responstable'>
-
 	<tr>
     <th> Service/Steps</th>
     {% for step in steps %}
@@ -36,10 +52,6 @@
      </th>
 	{% endfor %}
 	</tr > 
-	
-
-
-
 </table>
 <br>
 
@@ -53,7 +65,7 @@ function setTable(){
 	var number_of_steps = 0;
 	
 	{% for step in steps %}
-	
+	console.log("{{step.description}}");
 	descriptions.push("{{step.description}}");
 	number_of_steps=number_of_steps+1;
 	{% endfor %}
@@ -110,7 +122,6 @@ function addCell() {
    
     }
     else {
-    
     	
     	table_rows[i].insertCell(-1).innerHTML = "<td><input type='checkbox' name='myTextEditBox' value='checked' /></td> ";
     }
@@ -135,25 +146,26 @@ restoreSteps();
 function restoreSteps() {
 	var table_rows = document.getElementById("Mytable").rows;
 	
-	var table_cells = document.getElementById('Mytable').rows[0].cells
+	var table_cells = document.getElementById('Mytable').rows[0].cells;
 	
 	
 	for (i=1;i<table_cells.length;i++){
 		
-	    var name = "Step "+i;
+	    var name = "Step_"+i;
 	    table_cells[i].outerHTML = "<th ><p>"+name+" &nbsp;&nbsp;{% load static %}<img src=\"{% static 'images/Delete.png' %}\" onclick=\"delCell(this)\" style=\"display: inline-block;vertical-align: middle; width=\"30\" height=\"30\" alt=\"Delete Step\"></p></th>"
 	   
 	    }
 	    	
 }
 </script>
-<br>
-<br>
 
-<HorizontalPanel>
-<button style="position: absolute; right: 0;"  class="button2" onclick="save()">Save</button>
- <!--  &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;
-<button style="position: absolute; right: 0;"  class="button2" onclick="addCell()">Restore_Default</button>-->
+
+<HorizontalPanel style="position: absolute; right: 0;" >
+
+<button   class="button2" onclick="restore_default();">Restore Default</button>
+   &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;
+<button class="button2" onclick="save()">Save</button>
+
 </HorizontalPanel>
 
 <br>
@@ -209,11 +221,21 @@ function get_config(){
 function save(){
 	//console.log(window.hot.getData());
 	config = get_config();
-
+	var test_time = document.getElementById("test_time").value;
+	console.log(test_time);
+	var times=[];
+	var time = {
+			"hour": test_time.substring(0,2),
+			"minute": test_time.substring(3,5),
+			"second":test_time.substring(6,8)}
+	times.push(time);
+	final_time = JSON.stringify(times);
+	console.log(final_time);
+	
 	$.ajax({
 		    url:"{% url 'save' %}",
 		    type: "POST",
-		    data: { "json_items" : config , csrfmiddlewaretoken:$("input[name=csrfmiddlewaretoken]").val()},
+		    data: { "json_items" : config ,'time':final_time ,csrfmiddlewaretoken:$("input[name=csrfmiddlewaretoken]").val()},
 		    success:function(response){
 		        alert("success: " + response);
 		    },
@@ -222,11 +244,72 @@ function save(){
 		    },
 
 		});
-
-	    
-	}
-
+}
 </script>
+
+
+<script type="text/javascript">
+function delete_table(){
+	var Table = document.getElementById("Mytable");
+	Table.innerHTML = "";
+}
+
+function restore_default(){
+	var table = document.getElementById("Mytable");
+	delete_table();
+	console.log("table deleted");
+	var descriptions = [];
+	all_tests = ["VoIP","DATA_LAN_LAN","DATA_LAN_WLAN_2_4_Ghz","DATA_LAN_WLAN_5_Ghz","DATA_WAN_WLAN_5_Ghz","1xIPTV_WLAN_5_Ghz","2xIPTV_WLAN_5_Ghz","P2P_WLAN_5_Ghz","2xIPTV_LAN","WEBUI"];
+	
+	descriptions = ["VoIP,DATA_LAN_LAN","VoIP,DATA_LAN_WLAN_2_4_Ghz","VoIP,DATA_LAN_WLAN_5_Ghz","VoIP,DATA_WAN_WLAN_5_Ghz","VoIP,1xIPTV_WLAN_5_Ghz","VoIP,2xIPTV_WLAN_5_Ghz","VoIP,P2P_WLAN_5_Ghz","VoIP,P2P_WLAN_5_Ghz,2xIPTV_WLAN_5_Ghz","VoIP,DATA_LAN_WLAN_2_4_Ghz,2xIPTV_WLAN_5_Ghz,P2P_WLAN_5_Ghz,2xIPTV_LAN","VoIP,DATA_LAN_WLAN_2_4_Ghz,2xIPTV_WLAN_5_Ghz,P2P_WLAN_5_Ghz,2xIPTV_LAN,DATA_LAN_WLAN_5_Ghz","VoIP,DATA_LAN_WLAN_2_4_Ghz,2xIPTV_WLAN_5_Ghz,P2P_WLAN_5_Ghz,2xIPTV_LAN,DATA_LAN_WLAN_5_Ghz,DATA_WAN_WLAN_5_Ghz,WEBUI","VoIP,DATA_LAN_WLAN_2_4_Ghz,2xIPTV_WLAN_5_Ghz,P2P_WLAN_5_Ghz,2xIPTV_LAN,DATA_LAN_WLAN_5_Ghz,DATA_WAN_WLAN_5_Ghz,WEBUI,DATA_LAN_LAN"];
+	
+	var number_of_steps = 12;
+	
+
+
+	var row = table.insertRow(-1);
+	for (var j=0;j<number_of_steps+1;j++){
+		
+		if (j == 0){ 
+		row.insertCell(-1).outerHTML="<th> Service/Steps</th>";
+		}
+		else {
+			row.insertCell(-1).outerHTML =" <th ><p>Step_"+j+" &nbsp;&nbsp;{% load static %}<img src='{% static 'images/Delete.png' %}' onclick='delCell(this)' style='display: inline-block;vertical-align: middle; width='30' height='30' alt='Delete Step'></p></th>"
+			}	}
+	
+	
+	for(var i=0;i<10;i++){
+		var row = table.insertRow(-1);
+		for (var j=0;j<number_of_steps+1;j++){
+			
+			if (j == 0){ 
+			row.insertCell(-1).outerHTML="<th>"+all_tests[i]+"</th>" ;
+			}
+			else {
+				row.insertCell(-1).innerHTML = "<td><input type='checkbox' id='"+all_tests[i]+j+"'name='myTextEditBox' value='checked' ></td> ";
+				
+				}	
+			}	
+		}	
+	
+	for (var i=0;i<descriptions.length;i++){
+		var des = descriptions[i].split(",");
+	
+		for (j in des){
+			console.log(des[j]+(i+1));
+			
+			document.getElementById(des[j]+(i+1)).checked = true;
+			
+		}
+		
+		
+	}
+	console.log("table setted");
+	
+}
+</script>
+
+
 
 
 		

@@ -28,6 +28,8 @@ function goBack() {
 
 <br>
 
+<form  id="commentForm"  target="_blank" method="post" action="{% url 'dashbord' %}">
+{% csrf_token %}
 
 <HorizontalPanel>
 <input type="button" name="Go_Back"  onclick="goBack();"  id="Go_Back" class="button4" value="Go Back" >
@@ -38,10 +40,17 @@ function goBack() {
 <span id="time_left" class="textstyle4" >Time Left : </span>
 &nbsp;&nbsp; 
 <span id="demo" class="textstyle4" ></span>
+&nbsp;&nbsp;
+<input type="submit" id="dashbord" align="center"  class="button4" value="Dashbord" >
 
 
+    <select  name="project" class="select"  style="display: none;">
+	<option class="container" id ='project_id' value={{project_id}} >{{project_id}}</option>
+    </select> 
+    
+    
 </HorizontalPanel>
-
+</form>
 
 <script type="text/javascript">   
     $( document ).ready(function() {

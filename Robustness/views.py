@@ -10,9 +10,46 @@ import time
 import time
 import json
 from django.http import HttpResponse
-from .models import Project, Step, Test_Result, Step_Result, Project_result,Metric_Result,Test
+from .models import Project, Step, Test_Result, Step_Result, Project_result,Metric_Result,Test,Config_time
 from .threads import WebUiThread, Synchronize_Steps
+import datetime
+from _mysql import result
 
+
+
+
+@login_required(login_url='/accounts/login/')
+def dashbord(request):
+    
+    if request.is_ajax():
+        for key, value in request.POST.items():
+            print(key,value)
+            if key == "project":
+                project_id = value
+                print(project_id)
+            results = [ob.as_json() for ob in Step_Result.objects.all()]
+            print(results)
+            return JsonResponse({'all_tests':results})
+        
+        
+        
+    for key, value in request.POST.items():
+        if key == "project":
+            project_id = value
+            print(project_id)
+    
+    executed_project = Project_result.objects.get(project_result_id=project_id)
+    steps = Step_Result.objects.all().filter(project_result=executed_project).order_by('step_number')
+
+    return render(request,'dashbord.html',context={'steps_result':steps})
+
+"""
+def update_dashbord(request):
+    results = [ob.as_json() for ob in Step_Result.objects.all()]
+    print(results)
+    return JsonResponse({'all_tests':results})
+    
+"""
 
 # Create your views here.
 # verify if service is running 
@@ -30,13 +67,27 @@ def login_success(request):
         #message="Elasticseach is not runnning! please contact the adminnistrator"
         message=""
     projects = Project.objects.all().order_by('-name')
-    return render(request,'index.html',context={'mess':message,'projects':projects})
+    return render(request,'index.html',context={'projects':projects})
 
 
 @login_required(login_url='/accounts/login/')
 def save(request):
     if request.is_ajax():
         data = json.loads(request.POST.get('json_items'))
+        timer  = json.loads(request.POST.get('time'))
+        print(timer[0])
+        
+        for key, value in timer[0].items():
+            if key == "hour" :
+                hour = value
+            if key == "minute" :
+                minute = value
+            if key == "second" :
+                second = value
+                
+        new = datetime.time(int(hour),int(minute),int(second))
+        Config_time.objects.filter(name="test_time").update(test_time=new)
+        
         Step.objects.all().delete()
         count = 0
         for i in data:
@@ -85,8 +136,11 @@ def after_login(request):
 @login_required(login_url='/accounts/login/')
 def configure_test(request):
 
-    steps = Step.objects.all().order_by('name')
-    return render(request,'configure.html',context={'steps':steps})
+    steps = Step.objects.all().order_by('step_number')
+    test_time = Config_time.objects.all()[0].test_time
+    print(test_time)
+    
+    return render(request,'configure.html',context={'steps':steps ,'test_time':str(test_time)})
 
 
 
@@ -138,10 +192,12 @@ def start_test(request):
     ste = Step_Result.objects.all().filter(project_result=project_result).order_by('step_number')    
     # Synchronize_Steps a deamon that synchronize all tests in the steps
     # time to execute one tests (step)
-    test_time = 60
+    a = Config_time.objects.all().filter(name="test_time")[0].test_time
+    test_time=(a.hour*3600+a.minute*60+a.second)
+    test_time = 900
     Synchronize_Steps(ste,test_time,class_name)
     
-    return render(request,'test.html',context={'mess':message,'latest_results_list':ste,"project_name":project,"project_id":project_id})
+    return render(request,'test.html',context={'mess':message,'latest_results_list':ste,"project_name":project,"project_id":project_result.project_result_id,"project_id":project_id})
 
 def update(request):
     project_result = Project_result.objects.get(project_result_id=project_id)
@@ -190,6 +246,8 @@ def get_step_tests(data):
                     tests.append(value1)
                
     return tests
+
+
                 
 
     
