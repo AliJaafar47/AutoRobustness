@@ -8,62 +8,53 @@ from ssh_decorate import ssh_connect
 import threading
 import time
 import paramiko 
+import select
 from .models import Project, Step, Test_Result, Step_Result, Project_result
 
 class P2pTest():
     def __init__(self,name,test_time):
-        ssh=ssh_connect('pi','raspberry','192.168.1.105')
+        
         self.name = name
         self.test_time = test_time
-        @ssh
+        self.ip = '192.168.1.105'
+        self.username = 'pi'
+        self.password='raspberry'
+        
         def download(name,test_time):
-            import libtorrent as lt
-            import time
-            import sys
-            import random
-            import os
-            ses = lt.session()
-            port1 = random.randint(6000, 65535 )
-            port2 = random.randint(5000, 65535 ) 
-            ses.listen_on(port1, port2)
-            #ses.listen_on(sport, dport)
-            info = lt.torrent_info("./torrentfiles/"+name+".torrent")
-            #h = ses.add_torrent({'ti': info, 'save_path': threadName})
-            h = ses.add_torrent({'ti': lt.torrent_info("./torrentfiles/"+name+".torrent"), 'save_path': './torrentfiles/', 'seed_mode': False}) 
-            print ('starting', h.name())
-            s = h.status()
-            down_rate =[]
-            i = 0
-      
-            timeout = time.time() + test_time
-      
-            while s.progress * 100  < 100 : 
-                s = h.status()
-                state_str = ['queued', 'checking', 'downloading metadata', \
-                     'downloading', 'finished', 'seeding', 'allocating', 'checking fastresume']
-
-                if time.time() > timeout :
+            i=1
+            while True:
+                print ('Trying to connect to %s (%i/2)' % (self.ip , i))
+        
+                try:
+                    ssh2 = paramiko.SSHClient()
+                    ssh2.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                    ssh2.connect(self.ip , port=22, username=self.username, password=self.password)
+                    print ("Connected to %s" % self.ip)
                     break
-                
-                
-                if ( s.download_rate / 1000 ) > 0 :
-                # TODO : append in  data base and add one peer             
-                    down_rate.append(int(s.download_rate / 1000))
+                except paramiko.AuthenticationException:
+                    print ("Authentication failed when connecting to %s") % self.ip
+                    sys.exit(1)
+                except:
+                    print ("Could not SSH to %s, waiting for it to start" % self.ip)
+                    i += 1
+                    time.sleep(2)
+        
+            # If we could not connect within time limit
+                if i == 5:
+                    print ("Could not connect to %s. Giving up") % self.ip
+                    sys.exit(1)    
             
+
+            stdin2, stdout2, stderr2 = ssh2.exec_command("python /home/pi/download.py "+name)
+            print("Exec command 1")
             
-            
-            os.system("rm ./torrentfiles/"+name)
-            try :
-                print(h.name(), 'complete *** average download_rate : ',sum(down_rate) / float(len(down_rate)))
-                report_file = open("./torrentfiles/"+name+"_report","w")   
-                report_file.write(str(sum(down_rate) / float(len(down_rate))))
-                report_file.close()
-                
-            except Exception as e :
-                report_file = open("./torrentfiles/"+name+"error","w") 
-                report_file.write(str(e))
-                report_file.close()
-                return 0
+            #block untill command is over 
+            while not stdout2.channel.exit_status_ready():
+        # Only print data if there is data to read in the channel
+                    if stdout2.channel.recv_ready():
+                        rl, wl, xl = select.select([stdout2.channel], [], [], 0.0)
+
+
 
         
         self.download_thread  = threading.Thread(target = download,args = (self.name,self.test_time))
@@ -88,7 +79,7 @@ class GetResult():
 class TestTorrent():
     
     def __init__(self,test_time,class_name,IDTable):
-        self.number_of_files = 3
+        self.number_of_files = 2
         self.class_name = class_name
         self.test_time = test_time
         self.table = IDTable
@@ -124,7 +115,7 @@ class TestTorrent():
             self.table_one.update(progress=str(percentage))
             
             throughtput_list = []
-            
+            time.sleep(10)
             for i in range (1,self.number_of_files):
                 b = GetResult()
                 ch = b.getResult("Thread"+str(i)) 

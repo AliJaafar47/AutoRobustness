@@ -188,7 +188,7 @@ class MyThread_GetResult1(threading.Thread):
             
 class TestIPTV1():       
     def __init__(self,time_test,class_name,IDTable):
-        ip="192.168.1.10"
+        ip="192.168.1.103"
         username = "pi"
         pwd = "raspberry"
         
@@ -459,7 +459,7 @@ class MyThread_GetResult2(threading.Thread):
             
 class TestIPTV2():       
     def __init__(self,time_test,class_name,IDTable,test_type):
-        ip="192.168.1.10"
+        ip="192.168.1.103"
         username = "pi"
         pwd = "raspberry"
         

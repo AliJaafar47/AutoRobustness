@@ -194,7 +194,7 @@ def start_test(request):
     # time to execute one tests (step)
     a = Config_time.objects.all().filter(name="test_time")[0].test_time
     test_time=(a.hour*3600+a.minute*60+a.second)
-    test_time = 900
+    test_time = 14400
     Synchronize_Steps(ste,test_time,class_name)
     
     return render(request,'test.html',context={'mess':message,'latest_results_list':ste,"project_name":project,"project_id":project_result.project_result_id,"project_id":project_id})

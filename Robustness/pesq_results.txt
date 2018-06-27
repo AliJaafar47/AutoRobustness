@@ -37,3 +37,11 @@ REFERENCE	 DEGRADED	 PESQMOS	 MOSLQO	 SAMPLE_FREQ	 MODE
 /home/sah/Robustness_files/source1_raw16.raw	 /home/sah/Robustness_files/original_final_16bit.raw	 3.895	 4.044	 8000	nb
 /home/sah/Robustness_ReceiveCalls/original_final.raw	 /home/sah/Robustness_ReceiveCalls/final_out.raw	 4.131	 4.277	 8000	nb
 /home/sah/Robustness_files/source1_raw16.raw	 /home/sah/Robustness_files/original_final_16bit.raw	 3.895	 4.044	 8000	nb
+/home/sah/Robustness_files/original_final.raw	 /home/sah/Robustness_files/final_out.raw	 1.695	 1.425	 8000	nb
+/home/sah/Robustness_files/original_final.raw	 /home/sah/Robustness_files/final_out.raw	 2.912	 2.693	 8000	nb
+/home/sah/Robustness_files/original_final.raw	 /home/sah/Robustness_files/final_out.raw	 1.734	 1.448	 8000	nb
+/home/sah/Robustness_files/original_final.raw	 /home/sah/Robustness_files/final_out.raw	 2.904	 2.681	 8000	nb
+/home/sah/Robustness_files/source1_raw16.raw	 /home/sah/Robustness_files/original_final_16bit.raw	 1.688	 1.421	 8000	nb
+/home/sah/Robustness_files/source1_raw16.raw	 /home/sah/Robustness_files/original_final_16bit.raw	 1.688	 1.421	 8000	nb
+/home/sah/Robustness_files/source1_raw16.raw	 /home/sah/Robustness_files/original_final_16bit.raw	 1.688	 1.421	 8000	nb
+/home/sah/Robustness_files/original_final.raw	 /home/sah/Robustness_files/final_out.raw	 3.164	 3.067	 8000	nb

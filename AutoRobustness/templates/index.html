@@ -1,0 +1,73 @@
+{% extends "base_generic.html" %}
+
+{% block menubar %}
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+{% if user.is_authenticated %}
+<li>
+ {% if user.is_staff %}
+<a href="{% url 'admin:index' %}">  Go to Admin page  </a> 
+{% endif %}
+ &nbsp;		&nbsp; 	
+User: {{ user.get_username }} &nbsp; <a href="{% url 'logout' %}?next={% url 'login' %}">  Logout  </a> &nbsp; &nbsp; &nbsp;</li> 
+<br>
+{% endif %} 
+{% endblock %}
+{% block other%}
+<br>
+<a align="center" style="color:red;">{{mess}}</a>
+{% endblock %}
+<br>
+
+{% block content %}
+<form  method="post" action="{% url 'after_login' %}">
+{% csrf_token %}
+<br>
+<br>
+<br>
+<br>
+<div align="center">
+  <HorizontalPanel>
+       <span id ="project_name"class="textstyle3">Select a Project :</span>
+    
+   &nbsp; &nbsp;
+   
+    <select  name="project" class="select">
+	{% for project in projects %}
+	<option class="container" value={{project.name}} >{{project.name}}</option>
+	{% endfor %}
+    </select> 
+  
+
+	&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; 
+	<input type="submit" name="Check_Setup" id="Check_Setup" class="button2" value="Check Setup" >
+	&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; 
+    <input type="submit" name="Flash_the_DUT" id="Flash_the_DUT" class="button2" value="Flash the DUT" >
+	&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; 
+    <input type="submit" name="Configure"  id="Configure" class="button2" value="Configure" >
+	
+</HorizontalPanel>
+</div>
+<br>
+<br>
+<br>
+<br>
+    <div align="center">
+ 
+    <input type="submit" name="Start_Test"  id="Start_Test" class="button3" value="Start Test" >
+	</div>
+</form>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+

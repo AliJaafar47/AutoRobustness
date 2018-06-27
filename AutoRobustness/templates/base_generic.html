@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <script src="{% static 'dist/jquery-1.12.3.min.js' %}"></script>
+  
+  
+  <!-- Add additional CSS in static file -->
+
+
+<style type="text/css">
+.htCore > tbody > tr:nth-child(even) > td {
+    background-color: #cce6ff;
+}
+
+.htCore > tbody > tr:nth-child(odd) > td {
+    background-color: #e6f3ff;
+}
+.handsontable th {
+  background-color: #E1E0E3;
+}
+
+
+
+</style>
+
+</head>
+
+<body>
+
+<div class="wrapper">
+		<table width="100%" cellpadding="4" cellspacing="0" border="0" bgcolor="#C7D01F">
+
+
+
+
+
+        <tbody><tr>
+          <th align="center">
+          {% load static %}
+		  <img src="{% static 'images/sah.png' %}" id="img_67c5a5c8" alt="" title="" width="80px"/>
+		  
+		  <h1>SoftAtHome Auto-Robustness</h1>
+		  <br>
+		  <p >version : 1.0 </p>
+		<br>
+
+    {% block other %}
+
+    {% endblock %}
+		  </th>
+        </tr>
+        <tr>
+          <td align="right">
+           {% block menubar %}
+
+    {% endblock %}
+          </td>
+
+        </tr>
+
+      </tbody>
+
+	  </table>
+
+			<div >
+      {% block content %}{% endblock %}
+      </div>
+      </div>
+			
+</body>
+</html>

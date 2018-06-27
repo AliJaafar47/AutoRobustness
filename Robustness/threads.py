@@ -180,6 +180,7 @@ class Synchronize_Steps(object):
             jobs = []
             
             for j in tests :
+                print(j)
                 tableId = i.test_result.all().filter(name=j)[0].test_id
                 if j == "WEBUI":
                     oneThread = WebUiThread(self.test_time,self.class_name,tableId)
@@ -190,6 +191,7 @@ class Synchronize_Steps(object):
                     jobs.append(oneThread)
                     
                 if j == "P2P_WLAN_5_Ghz":
+                    print("Begin Thread Torrent")
                     oneThread = TorrentThread(self.test_time,self.class_name,tableId)
                     jobs.append(oneThread)
                     
@@ -207,7 +209,7 @@ class Synchronize_Steps(object):
                     oneThread = IPTVThreadWLAN1(self.test_time,self.class_name,tableId)
                     jobs.append(oneThread)
                 
-                if j == "IPTV_LAN":
+                if j == "2xIPTV_LAN":
                     oneThread = IPTVThreadLAN2(self.test_time,self.class_name,tableId)
                     jobs.append(oneThread)
                     

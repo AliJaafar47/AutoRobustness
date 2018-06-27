@@ -4,7 +4,7 @@ import select
 import os
 import sys
 import pyshark as p
-from .models import Test_Result
+#from .models import Test_Result
 
 
 class TestVoip():   
@@ -126,7 +126,7 @@ class ReceiveCall():
         self.name = name
         self.test_time = test_time
         print("Start")   
-        host = '192.168.1.21'
+        host = '172.16.251.15'
         self.username = 'pi'
         self.pwd = 'raspberry'
         
@@ -134,7 +134,7 @@ class ReceiveCall():
         server_username = "root"
         server_pwd = "sah"
         
-        self.ip_DUT_wan = "172.16.30.226"
+        self.ip_DUT_wan = "172.16.251.100"
         
         
         i = 1
@@ -193,7 +193,7 @@ class ReceiveCall():
         
         stdin, stdout, stderr = ssh2.exec_command("tshark -i any -f 'host "+self.ip_DUT_wan+"' -w capture_rtp.pcap -a duration:20")
         
-        time.sleep(3)
+        
         stdin2, stdout2, stderr2 = ssh.exec_command("sudo python /home/pi/test.py 12")
         print("Exec command 3")
         
@@ -202,11 +202,12 @@ class ReceiveCall():
     # Only print data if there is data to read in the channel
                 if stdout.channel.recv_ready():
                     rl, wl, xl = select.select([stdout.channel], [], [], 0.0)
-                    
+        print('waiting')
+        time.sleep(20)
         print("getting pcap file")
         sftp = ssh2.open_sftp()
         remotePath="/root/capture_rtp.pcap"
-        localPath="/home/sah/Robustness_ReceiveCalls/capture_rtp.pcap"
+        localPath="/home/sah/Robustness_files/capture_rtp.pcap"
         sftp.get(remotePath,localPath) 
          
         stdin, stdout, stderr = ssh.exec_command("sox -e a-law -r 8000 -b 8 --norm=-1 /home/pi/out.raw -e signed-integer -b 16 -r 8000 /home/pi/test132_16_2.raw")
@@ -214,15 +215,15 @@ class ReceiveCall():
         print("getting raw file")
         sftp = ssh.open_sftp()
         remotePath="/home/pi/test132_16_2.raw"
-        localPath="/home/sah/Robustness_ReceiveCalls/out.raw"
+        localPath="/home/sah/Robustness_files/out.raw"
         sftp.get(remotePath,localPath)        
         time.sleep(1)
 
             #stdin, stdout, stderr = ssh.exec_command("PESQ +8000  /home/pi/RTP_G711a_16.raw  /home/pi/test132_16_2.raw ")
-        original = open("/home/sah/Robustness_ReceiveCalls/RTP_G711a_16.raw","rb")
+        original = open("/home/sah/Robustness_files/RTP_G711a_16.raw","rb")
         original.read(35000)
     
-        original_final = open("/home/sah/Robustness_ReceiveCalls/original_final.raw","wb")
+        original_final = open("/home/sah/Robustness_files/original_final.raw","wb")
         while True :
             k = original.read()
             
@@ -232,8 +233,8 @@ class ReceiveCall():
             original_final.write(k)
     
     
-        a = open("/home/sah/Robustness_ReceiveCalls/out.raw","rb")
-        b = open("/home/sah/Robustness_ReceiveCalls/final_out.raw","wb")
+        a = open("/home/sah/Robustness_files/out.raw","rb")
+        b = open("/home/sah/Robustness_files/final_out.raw","wb")
     
         a.read(1000)
         print("converting")
@@ -246,7 +247,7 @@ class ReceiveCall():
             b.write(k)
         print("PESQ")
     
-        os.system("PESQ +8000  /home/sah/Robustness_ReceiveCalls/original_final.raw  /home/sah/Robustness_ReceiveCalls/final_out.raw ")
+        os.system("PESQ +8000  /home/sah/Robustness_files/original_final.raw  /home/sah/Robustness_files/final_out.raw ")
             #block untill command is over 
             #while not stdout.channel.exit_status_ready():
         # Only print data if there is data to read in the channel
@@ -254,7 +255,7 @@ class ReceiveCall():
                     #rl, wl, xl = select.select([stdout.channel], [], [], 0.0)
                     
                         
-        os.system("tshark -r /home/sah/Robustness_ReceiveCalls/capture_rtp.pcap -q -z rtp,streams > one_way_delay.txt")
+        os.system("tshark -r /home/sah/Robustness_files/capture_rtp.pcap -q -z rtp,streams > one_way_delay.txt")
         print("Done")
     
     def get_pesq_value(self,filename):
@@ -285,7 +286,7 @@ class ReceiveCall():
 class MakeCall():
     def __init__(self,name,test_time):
     #test parameters 
-        host = '192.168.1.21'
+        host = '172.16.251.15'
         self.username = 'pi'
         self.pwd = 'raspberry'
     
@@ -294,7 +295,7 @@ class MakeCall():
         server_pwd = "sah"
 
         
-        self.ip_DUT_wan ="172.16.30.226"
+        self.ip_DUT_wan ="172.16.251.100"
 
 
         self.name = name
@@ -332,7 +333,8 @@ class MakeCall():
     
         print("Exec command 2")
         time.sleep(2)
-        stdin2, stdout2, stderr2 = ssh.exec_command("sudo python /home/pi/sipp/makecall.py")
+        
+        
     
         print("Exec command 3")
         print("Start Capturing traffic")
@@ -360,12 +362,15 @@ class MakeCall():
                 print ("Could not connect to %s. Giving up") % serverip
                 sys.exit(1)    
         
-        stdin, stdout, stderr = ssh2.exec_command("tshark -i any -f 'host "+self.ip_DUT_wan+"'  -w capture_rtp.pcap -a duration:50")
-            #blockTestVoip untill command is over 
+        stdin, stdout, stderr = ssh2.exec_command("tshark -i any -w capture_rtp.pcap -a duration:50")
+        #blockTestVoip untill command is over 
+        stdin2, stdout2, stderr2 = ssh.exec_command("sudo python /home/pi/sipp/makecall.py")
         while not stdout.channel.exit_status_ready():
             # Only print data if there is data to read in the channel
             if stdout.channel.recv_ready():
                 rl, wl, xl = select.select([stdout.channel], [], [], 0.0)
+
+        
         print("getting file")
         sftp = ssh2.open_sftp()
         remotePath="/root/capture_rtp.pcap"
@@ -424,8 +429,8 @@ class MakeCall():
 
 
 
-        
-        
+#b = MakeCall("name",2)
+#a = ReceiveCall("name",2)
 #a = TestVoip(300,"FT",1)
 #a.startTest()
 #a.endTest()
