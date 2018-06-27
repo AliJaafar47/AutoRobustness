@@ -171,7 +171,7 @@ def start_test(request):
             print(metric_list)
             print(oneTest.test_id)            
             for k in metric_list:
-                oneMetricResult  = Metric_Result(name = k.name)
+                oneMetricResult  = Metric_Result(name = k.name,test_name=j.name,step_name=i.name,project_name=project_result.project_result_id)
                 oneMetricResult.save()
                 oneTest.metrics.add(oneMetricResult)
                 

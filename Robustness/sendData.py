@@ -301,7 +301,7 @@ class TestSendData():
 #b.start()
 #b.join()
 #a.join()
-#c=MyThread_GetResult()
+#c=MyThread_GetResult('pi','raspberry','192.168.1.106')
 #c.start()
 
         

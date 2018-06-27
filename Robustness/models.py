@@ -3,6 +3,7 @@ from django.db import models
 from django.template.defaultfilters import default
 from django.urls import reverse  # Used to generate URLs by reversing the URL patterns
 import uuid
+from datetime import datetime
 
 
 # Create your models here.
@@ -58,6 +59,10 @@ class Metric_Result(models.Model):
     name = models.CharField(max_length=100)
     values = models.CharField(max_length=5000,default="0",help_text="Values of one Metric") 
     list_of_values = models.CharField(max_length=5000,default="",help_text="Values of one Metric")
+    project_name = models.CharField(max_length=100)
+    step_name = models.CharField(max_length=100)
+    test_name = models.CharField(max_length=100)
+    execution_date=models.DateTimeField(default=datetime.now())
     
     def update_values(self,new_values):
         Metric_Result.objects.filter(id=self.id).update(values = str(new_values))
@@ -72,7 +77,7 @@ class Metric_Result(models.Model):
         Metric_Result.objects.filter(id=self.id).update(list_of_values = str(new))
         
     def __str__(self):
-        return self.name
+        return (self.project_name+" "+" "+self.step_name +" "+self.test_name+" "+self.name)
     
     
     
