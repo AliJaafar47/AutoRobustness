@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from . models import Project , Class , Step , Test, Metric, Test_Result, Step_Result, Project_result,Metric_Result,Config_time, Config_IP
 
-
+  
 # Register your models here.
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ('name','classe')
@@ -24,9 +24,10 @@ class TestAdmin(admin.ModelAdmin):
     filter_horizontal = ('metrics',)
     def metrics_list(self, obj):
         return ", ".join([p.name for p in obj.metrics.all()])
-    
-admin.site.register(Test, TestAdmin)   
+
 admin.site.register(Project, ProjectAdmin)
+  
+admin.site.register(Test, TestAdmin)   
 admin.site.register(Class)
 admin.site.register(Step, StepAdmin)
 admin.site.register(Metric)

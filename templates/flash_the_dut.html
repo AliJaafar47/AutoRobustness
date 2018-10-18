@@ -1,0 +1,224 @@
+{% extends "base_generic.html" %}
+
+{% block menubar %}
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+  
+{% if user.is_authenticated %}
+<li>
+ {% if user.is_staff %}
+<a href="{% url 'admin:index' %}">  Go to Admin page  </a> 
+{% endif %}
+ &nbsp;		&nbsp; 	
+User: {{ user.get_username }} &nbsp; <a href="{% url 'logout' %}?next={% url 'login' %}">  Logout  </a> &nbsp; &nbsp; &nbsp;</li> 
+<br>
+{% endif %} 
+{% endblock %}
+{% block other%}
+<br>
+<a align="center" style="color:red;">{{message}}</a>
+{% endblock %}
+<br>
+
+{% block content %}
+<form  method="post" action="{% url 'start_flash' %}">
+{% csrf_token %}
+
+<br>
+<br>
+ <script>
+function goBack() {
+    window.history.back();
+}
+</script>
+<input type="button" name="Go_Back"  onclick="goBack();"  id="Go_Back" class="button4" value="Go Back" >
+
+
+<br>
+<br>
+<br>
+<br>
+    
+    <HorizontalPanel >
+    <div align="center">
+    <span id ="path_label" class="textstyle3" style="display:none">Path :</span>  &nbsp;&nbsp;&nbsp;&nbsp; 	 	
+ 	<input type="text" name="path"  id="path" class="text3" value="http://{{ip}}/" style="display:none" > &nbsp;&nbsp;&nbsp;&nbsp;
+ 	
+ 	
+ 	<span id ="build_label" class="textstyle3">Build :</span>&nbsp;&nbsp;&nbsp;&nbsp;
+ 	<select type="text" class="text33"  name="build" id="build">
+ 	{% for build in builds_list %}
+	<option>{{build.name}}</option>
+	{% endfor %}
+	</select> 
+	
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	
+	<span id ="build_label" class="textstyle3">Target :</span>&nbsp;&nbsp;&nbsp;&nbsp;
+	
+	<select type="text" class="text3"  name="target" id="target">
+	<option>askey-stargatev2</option>
+  	<option>arcadyan-starlite</option>
+  	<option>siligence-cut2</option>
+  	<option>sagem_lbv3</option>
+  	<option>sagem_mib4</option>
+	</select> 
+	
+	</HorizontalPanel>
+	</div>
+	
+	<br>
+	<br>
+	<br>
+	<br>
+	<div align="center">
+
+
+	
+	
+	
+	
+	<br>
+	<br>
+    <br>
+   	<br>
+	<br>
+    <br>
+    <input name="Start_Flash"  onclick="start_flash();" id="downloadButton" class="button3" value="Start Flash" >
+	
+	</div>
+	
+</form>
+<div id="dialog" title="Flash DUT">
+  <div class="progress-label">Starting Flash...</div>
+  <div id="progressbar"></div>
+</div>
+
+
+
+<script>
+$(function() {
+	  var progressTimer,
+	    progressbar = $( "#progressbar" ),
+	    progressLabel = $( ".progress-label" ),
+	    dialogButtons = [{
+	      text: "Close",
+	      click: closeDownload,
+	      disabled: true,
+	    }],
+	    dialog = $( "#dialog" ).dialog({
+	      autoOpen: false,
+	      closeOnEscape: false,
+	      resizable: false,
+	      buttons: dialogButtons,
+	      open: function() {
+	        progressTimer = setTimeout( progress, 3000 );
+	      },
+	      beforeClose: function() {
+	        downloadButton.button( "option", {
+	          disabled: false,
+	          label: "Start Flash"
+	        });
+	      }
+	    }),
+	    downloadButton = $( "#downloadButton" )
+	      .button()
+	      .on( "click", function() {
+	    	  var path = document.getElementById('path').value ; 	
+	    	  var build = document.getElementById('build').value ; 
+	    	  if (path !="" && build!=""){   		
+	        $( this ).button( "option", {
+	          disabled: true,
+	          label: "Progressing ..."
+	        });
+	        dialog.dialog( "open" );
+	        
+	    	  }
+	      });
+
+	  progressbar.progressbar({
+	    value: false,
+	    change: function() {
+	      progressLabel.text( "Current Progress: " + progressbar.progressbar( "value" ) + "%" );
+	    },
+	    complete: function() {
+	      progressLabel.text( "Complete!" );
+	      dialog.dialog( "option", "buttons", [{
+	        text: "Close",
+	        click: closeDownload
+	      }]);
+	      $(".ui-dialog button").last().focus();
+	    }
+	  });
+
+	  function progress() {
+	    var val = progressbar.progressbar( "value" ) || 0;
+
+	    progressbar.progressbar( "value", val + Math.floor( Math.random() * 3 ) );
+
+	    if ( val <= 99 ) {
+	      progressTimer = setTimeout( progress, 10000 );
+	    }
+	  }
+
+	  function closeDownload() {
+	    clearTimeout( progressTimer );
+	    dialog
+	      .dialog( "option", "buttons", dialogButtons )
+	      .dialog( "close" );
+	    progressbar.progressbar( "value", false );
+	    progressLabel
+	      .text( "Starting Flash..." );
+	    downloadButton.focus();
+	  }
+	});
+
+</script>
+{% csrf_token %}
+ <script type="text/javascript">
+
+function start_flash(){
+var path = document.getElementById('path').value ; 	
+var build = document.getElementById('build').value ; 
+var target = document.getElementById('target').value ; 
+console.log(path);
+console.log(build);
+
+if (path =="" || build==""){
+	
+	alert("Please enter a Build and Path !");
+	return 1 ;
+}
+
+$.ajax({
+    url:"{% url 'start_flash' %}",
+    type: "POST",
+    data: { "path" : JSON.stringify(path),"target" : JSON.stringify(target),"build" : JSON.stringify(build),csrfmiddlewaretoken:$("input[name=csrfmiddlewaretoken]").val()},
+    success:function(response){
+        //alert("success: " + response);
+    },
+    error:function (xhr, textStatus, thrownError){
+        alert("Error in executing Flash script : " + xhr.statusText);
+    },
+
+});
+}
+</script>
+
+
+
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+

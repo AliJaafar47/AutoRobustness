@@ -3,7 +3,7 @@ import threading
 from  .torrent import TestTorrent
 from  .voip import TestVoip
 from  .webui import TestWebUi
-from .sendData import TestSendData
+from .sendData import TestSendData,TestSendDataFromWan
 from .iptv import TestIPTV1 , TestIPTV2
 
 class WebUiThread(threading.Thread):
@@ -25,7 +25,10 @@ class WebUiThread(threading.Thread):
     def run(self):
         """ Method that runs in backgroud """
         a = TestWebUi(self.test_time,self.class_name,self.IDTable)
-        a.startTest()
+        try :
+            a.startTest()
+        except : 
+            print("Error in WebUI test")
         a.endTest()
         
         
@@ -78,6 +81,28 @@ class SendDataLanThread(threading.Thread):
     until the application exits.
     """
 
+    def __init__(self, test_time,class_name,IDTable,ip_client,ip_server):
+        """ Constructor
+        :type interval: int
+        :param interval: Check interval, in seconds
+        """
+        self.test_time = test_time
+        self.class_name = class_name
+        self.IDTable = IDTable       
+        self.ip_server=ip_server
+        self.ip_client = ip_client
+        threading.Thread.__init__(self)
+        
+    def run(self):
+        """ Method that runs in backgroud """
+        a = TestSendData(self.test_time,self.class_name,self.IDTable,self.ip_client,self.ip_server)
+
+class SendDataWanThread(threading.Thread):
+    """ Threading example class
+    The run() method will be started and it will run in the background
+    until the application exits.
+    """
+
     def __init__(self, test_time,class_name,IDTable):
         """ Constructor
         :type interval: int
@@ -90,7 +115,8 @@ class SendDataLanThread(threading.Thread):
         
     def run(self):
         """ Method that runs in backgroud """
-        a = TestSendData(self.test_time,self.class_name,self.IDTable)
+        a = TestSendDataFromWan(self.test_time,self.class_name,self.IDTable)
+
 
 
 
@@ -134,7 +160,7 @@ class IPTVThreadWLAN2(threading.Thread):
         
     def run(self):
         """ Method that runs in backgroud """
-        a = TestIPTV2(self.test_time,self.class_name,self.IDTable,"WLAN")
+        a = TestIPTV2(self.test_time,self.class_name,self.IDTable,"wlan")
         
         
 class IPTVThreadLAN2(threading.Thread):
@@ -156,7 +182,7 @@ class IPTVThreadLAN2(threading.Thread):
         
     def run(self):
         """ Method that runs in backgroud """
-        a = TestIPTV2(self.test_time,self.class_name,self.IDTable,"LAN")
+        a = TestIPTV2(self.test_time,self.class_name,self.IDTable,"lan")
 
 
 class Synchronize_Steps(object):
@@ -196,21 +222,33 @@ class Synchronize_Steps(object):
                     jobs.append(oneThread)
                     
                 if j == "DATA_LAN_LAN":
-                    oneThread = SendDataLanThread(self.test_time,self.class_name,tableId)
+                    oneThread = SendDataLanThread(self.test_time,self.class_name,tableId,"192.168.1.104","192.168.1.106")
+                    jobs.append(oneThread)
+                    
+                if j == "DATA_LAN_WLAN_2_4_Ghz":
+                    oneThread = SendDataLanThread(self.test_time,self.class_name,tableId,"192.168.1.103","192.168.1.110")
+                    jobs.append(oneThread)
+                    
+                                    
+                if j == "DATA_LAN_WLAN_5_Ghz":
+                    oneThread = SendDataLanThread(self.test_time,self.class_name,tableId,"192.168.1.140","192.168.1.107")
                     jobs.append(oneThread)
                     
                     
-                if j == "IPTV_WLAN_5_Ghz_2":
+                if j == "2xIPTV_WLAN_5_Ghz":
                     oneThread = IPTVThreadWLAN2(self.test_time,self.class_name,tableId)
                     jobs.append(oneThread)
                 
-                if j == "IPTV_WLAN_5_Ghz_1":
-                    
+                if j == "1xIPTV_WLAN_5_Ghz":
                     oneThread = IPTVThreadWLAN1(self.test_time,self.class_name,tableId)
                     jobs.append(oneThread)
                 
                 if j == "2xIPTV_LAN":
                     oneThread = IPTVThreadLAN2(self.test_time,self.class_name,tableId)
+                    jobs.append(oneThread)
+                
+                if j == "DATA_WAN_WLAN_5_Ghz":
+                    oneThread = SendDataWanThread(self.test_time,self.class_name,tableId)
                     jobs.append(oneThread)
                     
                     

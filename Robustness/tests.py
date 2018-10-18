@@ -19,7 +19,10 @@ def get_one_way_delay(filename):
     one_way_delay_list.append(lastline)
     print(one_way_delay_list)
     return one_way_delay_list
-    
 
+#import subprocess
+#import sys
+
+#subprocess.run(['ls'], stderr=sys.stderr, stdout=sys.stdout)
 #get_pesq("pesq_results.txt")
 #get_one_way_delay("one_way_delay.txt")

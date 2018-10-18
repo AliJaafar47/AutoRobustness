@@ -32,18 +32,40 @@ User: {{ user.get_username }} &nbsp; <a href="{% url 'logout' %}?next={% url 'lo
     
    &nbsp; &nbsp;
    
-    <select  name="project" class="select">
+    <select  id="selections" name="project" class="select" onclick="save_parameters()">
 	{% for project in projects %}
 	<option class="container" value={{project.name}} >{{project.name}}</option>
 	{% endfor %}
     </select> 
-  
+<script >   
+
+function save_parameters(){
+	var e = document.getElementById("selections");    
+	var id = e.id;  // get the sender's id to save it . 
+	var val = e.value; // get the value. 
+	localStorage.setItem(id, val);	
+	console.log(val);
+localStorage.setItem(id, val);}
+</script >
+
+
+
+<script >
+          
+        document.getElementById("selections").value = getSavedValue("selections"); 
+
+        //get the saved value function - return the value of "v" from localStorage. 
+        function getSavedValue  (v){
+ 
+            return localStorage.getItem(v);
+        }
+</script>
 
 	&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; 
-	<input type="submit" name="Check_Setup" id="Check_Setup" class="button2" value="Check Setup" >
-	&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; 
-    <input type="submit" name="Flash_the_DUT" id="Flash_the_DUT" class="button2" value="Flash the DUT" >
-	&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; 
+	<!--<input type="submit" name="Check_Setup" id="Check_Setup" class="button2" value="Check Setup" >
+	&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; -->
+      <input type="submit" name="Flash_the_DUT" id="Flash_the_DUT" class="button2" value="Flash the DUT" >
+	&nbsp; &nbsp;&nbsp; &nbsp; &nbsp;
     <input type="submit" name="Configure"  id="Configure" class="button2" value="Configure" >
 	
 </HorizontalPanel>

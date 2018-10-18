@@ -1,0 +1,14 @@
+                            tr = $('<tr/>');
+                            tr.append("<td>" + json[i].step_number + "</td>");
+                            tr.append("<td>" + json[i].name + "</td>");
+                            
+                            tr.append("<td >" +split_description(json[i].description)+"</td>");
+                            
+                            
+                            tr.append("<td>" + json[i].state + "</td>");
+                            tr.append("<td>" + json[i].progress + " % </td>");
+                            
+                            
+                            tr.append("<td>" + split_metrics(json[i].metrics) + " </td>");
+                            
+                             $('#myTable tbody').append(tr);

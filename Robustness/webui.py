@@ -11,7 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-
+from .extra import DUT_metrics
 from .models import Test_Result
 
 
@@ -22,14 +22,18 @@ class TestWebUi():
     def __init__(self,test_time,class_name,IDTable):
         self.class_name = class_name
         self.test_time = test_time
-        self.table = Test_Result.objects.filter(test_id=IDTable)
+        self.table_one = Test_Result.objects.filter(test_id=IDTable)
         chrome_options = webdriver.ChromeOptions()
         self.driver = webdriver.Chrome() 
+        
+        self.table = Test_Result.objects.get(test_id=IDTable)
 
    
     def startTest(self):
-        self.table.update(state="starting test")
+        metrics = self.table.metrics.all()
+        self.table_one.update(state="starting test")
         timeout = time.time() + self.test_time
+        
         #SwissCom Class WebUI tests
         if self.class_name == "Swiss":
 
@@ -39,10 +43,10 @@ class TestWebUi():
                 print(random_generator())
                 
                 percentage = str((time.time() / timeout))[9:11]
-                self.table.update(progress=str(percentage))
+                self.table_one.update(progress=str(percentage))
                 
                 
-                self.table.update(state="Browsing Web ui test")
+                self.table_one.update(state="Browsing Web ui test")
                 try:
                     self.driver.get("http://192.168.3.1")
                     time.sleep(2)
@@ -57,7 +61,7 @@ class TestWebUi():
                     print('invalid url or credentials')
                 
                 percentage = str((time.time() / timeout))[9:11]
-                self.table.update(progress=str(percentage))
+                self.table_one.update(progress=str(percentage))
              
                 
                 speedTest = self.driver.find_element_by_css_selector('[class="speed-check text"]')
@@ -108,7 +112,7 @@ class TestWebUi():
                         pass
                         
                 ##urlGoogle = self.driver.get('http://www.google.com')
-                    self.table.update(state="Googling")
+                    self.table_one.update(state="Googling")
                     self.driver.execute_script("$(window.open('http://www.google.com'))")
                     time.sleep(5) 
                     self.driver.current_window_handle
@@ -117,7 +121,7 @@ class TestWebUi():
                     
                     
                     percentage = str((time.time() / timeout))[9:11]
-                    self.table.update(progress=str(percentage))
+                    self.table_one.update(progress=str(percentage))
                     
                     
                     search_box = self.driver.find_element_by_name('q')
@@ -128,7 +132,7 @@ class TestWebUi():
             
                     self.driver.switch_to_window(self.driver.window_handles[0])
                     time.sleep(5)
-                    self.table.update(state="Youtube")
+                    self.table_one.update(state="Youtube")
                     self.driver.execute_script("$(window.open('https://www.youtube.com/watch?v=nDjpGV-5rHk'))")
                     time.sleep(2)
                     self.driver.current_window_handle
@@ -141,7 +145,7 @@ class TestWebUi():
                     tabPort.click()
                     
                     percentage = str((time.time() / timeout))[9:11]
-                    self.table.update(progress=str(percentage))
+                    self.table_one.update(progress=str(percentage))
         
             
             
@@ -159,7 +163,7 @@ class TestWebUi():
                     
                     
                     percentage = str((time.time() / timeout))[9:11]
-                    self.table.update(progress=str(percentage))
+                    self.table_one.update(progress=str(percentage))
                 ##plagePort2 = self.driver.find_element_by_name('destinationPort')    
                 ##plagePort2.send_keys('5010')
                 ##time.sleep(3)
@@ -174,10 +178,22 @@ class TestWebUi():
             
             while time.time()< timeout :
                 percentage = str((time.time() / timeout))[9:11]
-                self.table.update(progress=str(percentage))
+                self.table_one.update(progress=str(percentage))
+                
+                # set CPU usage + memory usage     
+                other_metrics = DUT_metrics()
+                cpu_usage = other_metrics.get_CPU_usage()
+                memory_usage = other_metrics.get_Memory_usage()
+                for j in metrics :
+                    if j.name == "MEMORY_USAGE" :
+                        j.update_values(str(memory_usage)+" MBytes")
+                        j.add_new_value(str(memory_usage))               
+                    if j.name == "CPU_USAGE" :
+                        j.update_values(str(cpu_usage)+"%")
+                        j.add_new_value(str(cpu_usage))
+                self.table_one.update(state="Browsing Web ui test")
                 
                 
-                self.table.update(state="Browsing Web ui test")
                 try:
                     self.driver.get('http://192.168.1.1')
                     time.sleep(2)
@@ -191,157 +207,254 @@ class TestWebUi():
                     print('invalid url or credentials')
                 pass
             ################################# Administration - Mes Favoris ##################################################
-            
-                favorisWi= self.driver.find_element_by_id('favorites_Fav')
-                favorisWi.click()
-                time.sleep(3)
-                self.driver.back()
-                time.sleep(3) 
+                try:
+                    favorisWi= self.driver.find_element_by_id('favorites_Fav')
+                    favorisWi.click()
+                    time.sleep(3)
+                    self.driver.back()
+                    time.sleep(3) 
+                except:
+                    print("can't connect to favori interface")
                 
                 
             ########################################  Réseau ########################################################## 
-            
+               
                 slideWidget= self.driver.find_element_by_css_selector('[class="navarrow right"]')
                 #self.driver.execute_script("arguments[0].click();",slideWidget)
                 slideWidget.click()
-                time.sleep(2)
-                
-                
-                devicesListTitleWi= self.driver.find_element_by_id('devicesListTitle')
-                devicesListTitleWi.click()
-                time.sleep(3)
-                self.driver.back()
                 time.sleep(3)
                 
-                internetStateTitle= self.driver.find_element_by_id('internetStateTitle')
-                internetStateTitle.click()
-                time.sleep(3)
-                self.driver.back()
-                time.sleep(3)
+                 # set CPU usage + memory usage     
+                other_metrics = DUT_metrics()
+                cpu_usage = other_metrics.get_CPU_usage()
+                memory_usage = other_metrics.get_Memory_usage()
+                for j in metrics :
+                    if j.name == "MEMORY_USAGE" :
+                        j.update_values(str(memory_usage)+" MBytes")
+                        j.add_new_value(str(memory_usage))               
+                    if j.name == "CPU_USAGE" :
+                        j.update_values(str(cpu_usage)+"%")
+                        j.add_new_value(str(cpu_usage))
+                
+                try:
+                    devicesListTitleWi= self.driver.find_element_by_id('devicesListTitle')
+                    devicesListTitleWi.click()
+                    time.sleep(3)
+                    self.driver.back()
+                    time.sleep(3)
+                except:
+                    print("can't connect to device list interface")
+                
+                try:
+                    internetStateTitle= self.driver.find_element_by_id('internetStateTitle')
+                    internetStateTitle.click()
+                    time.sleep(3)
+                    self.driver.back()
+                    time.sleep(3)
+                    percentage = str((time.time() / timeout))[9:11]
+                    self.table_one.update(progress=str(percentage))
+                except:
+                    print("can't connect to internetState interface")
+                try:
+                    televisionStateStatus= self.driver.find_element_by_id('televisionStateStatus')
+                    televisionStateStatus.click()
+                    time.sleep(3)
+                    self.driver.back()
+                    time.sleep(3)
+                except:
+                    print("can't connect to televisionState interface ")
+                    
+                
+                try:
+                    voiceAdvanced= self.driver.find_element_by_id('voiceAdvanced')
+                    voiceAdvanced.click()
+                    time.sleep(3)
+                    self.driver.back()
+                    time.sleep(3)
+                except:
+                    print("can't connect to voiceAdvanced interface")
+                    
+                try:
+                    wifiAdvancedTitle= self.driver.find_element_by_id('wifiAdvanced')
+                    wifiAdvancedTitle.click()
+                    time.sleep(3)
+                    self.driver.back()
+                    time.sleep(3)
+                except:
+                    print("can't connect to WifiAdvanced inteface")
+                
+                try:
+                    wifiGuest = self.driver.find_element_by_id('wifiGuestTitle')
+                    wifiGuest.click()
+                    time.sleep(3)
+                    self.driver.back()
+                    time.sleep(3)
+                except:
+                    print("can't connect to wifiGuest interface")
+                    
+                 # set CPU usage + memory usage     
+                other_metrics = DUT_metrics()
+                cpu_usage = other_metrics.get_CPU_usage()
+                memory_usage = other_metrics.get_Memory_usage()
+                for j in metrics :
+                    if j.name == "MEMORY_USAGE" :
+                        j.update_values(str(memory_usage)+" MBytes")
+                        j.add_new_value(str(memory_usage))               
+                    if j.name == "CPU_USAGE" :
+                        j.update_values(str(cpu_usage)+"%")
+                        j.add_new_value(str(cpu_usage))
+                    
+                try:
+                    wifiScheduling= self.driver.find_element_by_id('wifiScheduling')
+                    wifiScheduling.click()
+                    time.sleep(3)
+                    self.driver.back()
+                    time.sleep(3)
+                except:
+                    print("can't connect to wifiScheduling interface ")
+                    
+                try:
+                    devicesHistory= self.driver.find_element_by_id('devicesHistory')
+                    devicesHistory.click()
+                    time.sleep(3)
+                    self.driver.back()
+                    time.sleep(3)
+                except:
+                    print("can't connect to devicesHistory interface ") 
+                    
+                      
+                try:
+                    mysmarthome= self.driver.find_element_by_id('mysmarthome')
+                    mysmarthome.click()
+                    time.sleep(5)
+                    self.driver.back()
+                    time.sleep(3)
+                except:
+                    print("can't connect to mysmarthome interface")
+                    
                 percentage = str((time.time() / timeout))[9:11]
-                self.table.update(progress=str(percentage))
+                self.table_one.update(progress=str(percentage))
+                try:
+                    myhomemap= self.driver.find_element_by_id('myhomemap')
+                    myhomemap.click()
+                    time.sleep(3)
+                    iframe = self.driver.find_element_by_xpath("//iframe[@id='iframeapp']")
+                    self.driver.switch_to.frame(iframe)
+                    time.sleep(2)
+                    self.driver.find_element_by_css_selector('[class="logo-retour"]').click()
+                    time.sleep(4)
+                except:
+                    print("could not locate element")
+                try:
+                    speedTest= self.driver.find_element_by_id('speedTest')
+                    speedTest.click()
+                    time.sleep(3)
+                    iframe = self.driver.find_element_by_xpath("//iframe[@id='iframeapp']")
+                    self.driver.switch_to.frame(iframe)
+                    time.sleep(2)
+                    startSpeedTest=self.driver.find_element_by_id('start')
+                    startSpeedTest.click()
+                    time.sleep(5)
+                    self.driver.back()
+                    time.sleep(3)
+                except:
+                    print("can't connect to speedTest interface")
+                    
+                 # set CPU usage + memory usage     
+                other_metrics = DUT_metrics()
+                cpu_usage = other_metrics.get_CPU_usage()
+                memory_usage = other_metrics.get_Memory_usage()
+                for j in metrics :
+                    if j.name == "MEMORY_USAGE" :
+                        j.update_values(str(memory_usage)+" MBytes")
+                        j.add_new_value(str(memory_usage))               
+                    if j.name == "CPU_USAGE" :
+                        j.update_values(str(cpu_usage)+"%")
+                        j.add_new_value(str(cpu_usage))
                 
-                televisionStateStatus= self.driver.find_element_by_id('televisionStateStatus')
-                televisionStateStatus.click()
-                time.sleep(3)
-                self.driver.back()
-                time.sleep(3)
+                try:
+                    wifiSpectrum= self.driver.find_element_by_id('wifiSpectrum')
+                    wifiSpectrum.click()
+                    time.sleep(3)
+                    iframe = self.driver.find_element_by_xpath("//iframe[@id='iframeapp']")
+                    self.driver.switch_to.frame(iframe)
+                    time.sleep(2)
+                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    time.sleep(5)
+                    self.driver.back()
+                    time.sleep(3)
+                except:
+                    print("can't connect to wifiSpectrum interface")
                 
-                voiceAdvanced= self.driver.find_element_by_id('voiceAdvanced')
-                voiceAdvanced.click()
-                time.sleep(3)
-                self.driver.back()
-                time.sleep(3)
                 
-                wifiAdvancedTitle= self.driver.find_element_by_id('wifiAdvanced')
-                wifiAdvancedTitle.click()
-                time.sleep(3)
-                self.driver.back()
-                time.sleep(3)
-                
-                wifiGuest= self.driver.find_element_by_id('wifiGuest')
-                wifiGuest.click()
-                time.sleep(3)
-                self.driver.back()
-                time.sleep(3)
-                
-                wifiScheduling= self.driver.find_element_by_id('wifiScheduling')
-                wifiScheduling.click()
-                time.sleep(3)
-                self.driver.back()
-                time.sleep(3)
-                
-                devicesHistory= self.driver.find_element_by_id('devicesHistory')
-                devicesHistory.click()
-                time.sleep(3)
-                self.driver.back()
-                time.sleep(3)
-                
-                mysmarthome= self.driver.find_element_by_id('mysmarthome')
-                mysmarthome.click()
-                time.sleep(5)
-                self.driver.back()
-                time.sleep(3)
-                percentage = str((time.time() / timeout))[9:11]
-                self.table.update(progress=str(percentage))
-                
-                myhomemap= self.driver.find_element_by_id('myhomemap')
-                myhomemap.click()
-                time.sleep(3)
-                iframe = self.driver.find_element_by_xpath("//iframe[@id='iframeapp']")
-                self.driver.switch_to.frame(iframe)
-                time.sleep(2)
-                self.driver.find_element_by_css_selector('[class="logo-retour"]').click()
-                time.sleep(3)
-                
-                speedTest= self.driver.find_element_by_id('speedTest')
-                speedTest.click()
-                time.sleep(3)
-                iframe = self.driver.find_element_by_xpath("//iframe[@id='iframeapp']")
-                self.driver.switch_to.frame(iframe)
-                time.sleep(2)
-                startSpeedTest=self.driver.find_element_by_id('start')
-                startSpeedTest.click()
-                time.sleep(5)
-                self.driver.back()
-                time.sleep(3)
-                
-                wifiSpectrum= self.driver.find_element_by_id('wifiSpectrum')
-                wifiSpectrum.click()
-                time.sleep(3)
-                iframe = self.driver.find_element_by_xpath("//iframe[@id='iframeapp']")
-                self.driver.switch_to.frame(iframe)
-                time.sleep(2)
-                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(5)
-                self.driver.back()
-                time.sleep(3)
-                
-                networkTools= self.driver.find_element_by_id('networkTools')
-                networkTools.click()
-                time.sleep(3)
-                startSpeedTest=self.driver.find_element_by_css_selector('[value="Ping"]')
-                startSpeedTest.click()
-                time.sleep(5)
-                self.driver.find_element_by_id('app_close').click()
-                percentage = str((time.time() / timeout))[9:11]
-                self.table.update(progress=str(percentage))
-                time.sleep(3)
                 
                 
            
                 
             ######################################## Paramètres avancés ##########################################################    
+               # set CPU usage + memory usage     
+                other_metrics = DUT_metrics()
+                cpu_usage = other_metrics.get_CPU_usage()
+                memory_usage = other_metrics.get_Memory_usage()
+                for j in metrics :
+                    if j.name == "MEMORY_USAGE" :
+                        j.update_values(str(memory_usage)+" MBytes")
+                        j.add_new_value(str(memory_usage))               
+                    if j.name == "CPU_USAGE" :
+                        j.update_values(str(cpu_usage)+"%")
+                        j.add_new_value(str(cpu_usage))
+                        
                 slideWidget= self.driver.find_element_by_css_selector('[class="navarrow right"]')
                 slideWidget.click()
                 time.sleep(2)
                 
-                internetConnection= self.driver.find_element_by_id('internetConnection')
-                internetConnection.click()
-                time.sleep(3)
-                self.driver.back()
-                time.sleep(3)
+                try:
+                    internetConnection= self.driver.find_element_by_id('internetConnection')
+                    internetConnection.click()
+                    time.sleep(3)
+                    self.driver.back()
+                    time.sleep(3)
+                except:
+                    print("can't connect to internetConnection interface")
+                try:
+                    internetRemote= self.driver.find_element_by_id('internetRemote')
+                    internetRemote.click()
+                    time.sleep(3)
+                    self.driver.back()
+                    time.sleep(3)
+                except:
+                    print("can't connect to internetRemote interface")
+                 # set CPU usage + memory usage     
+                other_metrics = DUT_metrics()
+                cpu_usage = other_metrics.get_CPU_usage()
+                memory_usage = other_metrics.get_Memory_usage()
+                for j in metrics :
+                    if j.name == "MEMORY_USAGE" :
+                        j.update_values(str(memory_usage)+" MBytes")
+                        j.add_new_value(str(memory_usage))               
+                    if j.name == "CPU_USAGE" :
+                        j.update_values(str(cpu_usage)+"%")
+                        j.add_new_value(str(cpu_usage))
+                try:
+                    localSettings= self.driver.find_element_by_id('localSettings')
+                    localSettings.click()
+                    time.sleep(3)
+                    self.driver.back()
+                    time.sleep(3)
+                except:
+                    print("can't connect to localSettings interface ")
                 
-                internetRemote= self.driver.find_element_by_id('internetRemote')
-                internetRemote.click()
-                time.sleep(3)
-                self.driver.back()
-                time.sleep(3)
-                
-                localSettings= self.driver.find_element_by_id('localSettings')
-                localSettings.click()
-                time.sleep(3)
-                self.driver.back()
-                time.sleep(3)
-                
-                reseauWi= self.driver.find_element_by_id('networkAdvancedTitle')
-                reseauWi.click()
-                time.sleep(3)
-                iframe = self.driver.find_element_by_xpath("//iframe[@id='iframeapp']")
-                self.driver.switch_to.frame(iframe)
-                time.sleep(3)
-                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(3)
+                try:
+                    reseauWi= self.driver.find_element_by_id('networkAdvancedTitle')
+                    reseauWi.click()
+                    time.sleep(3)
+                    iframe = self.driver.find_element_by_xpath("//iframe[@id='iframeapp']")
+                    self.driver.switch_to.frame(iframe)
+                    time.sleep(3)
+                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    time.sleep(3)
+                except:
+                    print("can't connect to reseauWi interface ")
                 try :
                     selectOp = Select(self.driver.find_element_by_id('tools'))
                     selectOp.select_by_index('1')
@@ -355,26 +468,27 @@ class TestWebUi():
                 self.driver.back()
                 time.sleep(3)
                 
-                networkFirewall= self.driver.find_element_by_id('networkFirewall')
-                networkFirewall.click()
-                time.sleep(3)
-                self.driver.back()
-                time.sleep(3)
+                try:
+                    networkFirewall= self.driver.find_element_by_id('networkFirewall')
+                    networkFirewall.click()
+                    time.sleep(3)
+                    self.driver.back()
+                    time.sleep(3)
+                except:
+                    print("can't conncet to networkFirewall interface ")
+                try:
+                    systemBackup= self.driver.find_element_by_id('systemBackup')
+                    systemBackup.click()
+                    time.sleep(3)
+                    self.driver.back()
+                    time.sleep(3)
+                except:
+                    print("can't connect to systemBackup interface")
+                '''
                 
-                systemBackup= self.driver.find_element_by_id('systemBackup')
-                systemBackup.click()
-                time.sleep(3)
-                self.driver.back()
-                time.sleep(3)
-                
-                userPassword= self.driver.find_element_by_id('userPassword')
-                userPassword.click()
-                time.sleep(3)
-                self.driver.back()
-                time.sleep(3)
                 try :
                     self.driver.execute_script("$(window.open('http://www.google.com'))")
-                    time.sleep(5) 
+                    time.sleep(3) 
                     self.driver.current_window_handle
                     self.driver.switch_to_window(self.driver.window_handles[-1])
                     time.sleep(3) 
@@ -386,9 +500,9 @@ class TestWebUi():
                     time.sleep(5)
                 except:
                     print("no internet connection")
-                    pass
+                    
                 percentage = str((time.time() / timeout))[9:11]
-                self.table.update(progress=str(percentage))
+                self.table_one.update(progress=str(percentage))
                 
                 try:
                     self.driver.switch_to_window(self.driver.window_handles[0])
@@ -402,13 +516,38 @@ class TestWebUi():
                     time.sleep(5)
                 except:
                     print("no internet connection")
-                    pass
+                '''       
         
-        
+                 # set CPU usage + memory usage     
+                other_metrics = DUT_metrics()
+                cpu_usage = other_metrics.get_CPU_usage()
+                memory_usage = other_metrics.get_Memory_usage()
+                for j in metrics :
+                    if j.name == "MEMORY_USAGE" :
+                        j.update_values(str(memory_usage)+" MBytes")
+                        j.add_new_value(str(memory_usage))               
+                    if j.name == "CPU_USAGE" :
+                        j.update_values(str(cpu_usage)+"%")
+                        j.add_new_value(str(cpu_usage))
         
         #OPL Class WebUI tests
+        
         if self.class_name == "OPL" :
+            
             while time.time()< timeout :
+                percentage = str((time.time() / timeout))[9:11]
+                self.table_one.update(progress=str(percentage))
+                # set CPU usage + memory usage     
+                other_metrics = DUT_metrics()
+                cpu_usage = other_metrics.get_CPU_usage()
+                memory_usage = other_metrics.get_Memory_usage()
+                for j in metrics :
+                    if j.name == "MEMORY_USAGE" :
+                        j.update_values(str(memory_usage)+" MBytes")
+                        j.add_new_value(str(memory_usage))               
+                    if j.name == "CPU_USAGE" :
+                        j.update_values(str(cpu_usage)+"%")
+                        j.add_new_value(str(cpu_usage))
                 try:
                     self.driver.get('http://192.168.1.1')
                     time.sleep(2)
@@ -429,7 +568,17 @@ class TestWebUi():
                 except : 
                     print('invalid url or credentials')
                 pass
-                
+                # set CPU usage + memory usage     
+                other_metrics = DUT_metrics()
+                cpu_usage = other_metrics.get_CPU_usage()
+                memory_usage = other_metrics.get_Memory_usage()
+                for j in metrics :
+                    if j.name == "MEMORY_USAGE" :
+                        j.update_values(str(memory_usage)+" MBytes")
+                        j.add_new_value(str(memory_usage))               
+                    if j.name == "CPU_USAGE" :
+                        j.update_values(str(cpu_usage)+"%")
+                        j.add_new_value(str(cpu_usage))
                 try:
                     network = self.driver.find_element_by_id('viewNetwork')  
                     network.click()
@@ -513,7 +662,17 @@ class TestWebUi():
                     hostLine = self.driver.find_element_by_id('left-hotline-link')
                     hostLine.click()
                     time.sleep(3)
-                    
+                        # set CPU usage + memory usage     
+                    other_metrics = DUT_metrics()
+                    cpu_usage = other_metrics.get_CPU_usage()
+                    memory_usage = other_metrics.get_Memory_usage()
+                    for j in metrics :
+                        if j.name == "MEMORY_USAGE" :
+                            j.update_values(str(memory_usage)+" MBytes")
+                            j.add_new_value(str(memory_usage))               
+                        if j.name == "CPU_USAGE" :
+                            j.update_values(str(cpu_usage)+"%")
+                            j.add_new_value(str(cpu_usage))
                     try :
                         self.driver.execute_script("$(window.open('http://www.google.com'))")
                         time.sleep(5) 
@@ -529,6 +688,17 @@ class TestWebUi():
                     except:
                         print("no internet connection")
                         pass
+                    # set CPU usage + memory usage     
+                    other_metrics = DUT_metrics()
+                    cpu_usage = other_metrics.get_CPU_usage()
+                    memory_usage = other_metrics.get_Memory_usage()
+                    for j in metrics :
+                        if j.name == "MEMORY_USAGE" :
+                            j.update_values(str(memory_usage)+" MBytes")
+                            j.add_new_value(str(memory_usage))               
+                        if j.name == "CPU_USAGE" :
+                            j.update_values(str(cpu_usage)+"%")
+                            j.add_new_value(str(cpu_usage))
                     try:
                         self.driver.switch_to_window(self.driver.window_handles[0])
                         time.sleep(5)
@@ -550,6 +720,19 @@ class TestWebUi():
     #FT Class WebUI tests
         if self.class_name == "FT" :   
             while time.time()< timeout :
+                percentage = str((time.time() / timeout))[9:11]
+                self.table_one.update(progress=str(percentage))
+                # set CPU usage + memory usage     
+                other_metrics = DUT_metrics()
+                cpu_usage = other_metrics.get_CPU_usage()
+                memory_usage = other_metrics.get_Memory_usage()
+                for j in metrics :
+                    if j.name == "MEMORY_USAGE" :
+                        j.update_values(str(memory_usage)+" MBytes")
+                        j.add_new_value(str(memory_usage))               
+                    if j.name == "CPU_USAGE" :
+                        j.update_values(str(cpu_usage)+"%")
+                        j.add_new_value(str(cpu_usage))
                 try:
                     self.driver.get('http://192.168.1.1')
                     time.sleep(4)
@@ -563,7 +746,19 @@ class TestWebUi():
                     print('invalid url or credentials')
                 pass
             ################################# Administration - Mes Favoris ##################################################
-            
+                # set CPU usage + memory usage     
+                other_metrics = DUT_metrics()
+                cpu_usage = other_metrics.get_CPU_usage()
+                memory_usage = other_metrics.get_Memory_usage()
+                for j in metrics :
+                    if j.name == "MEMORY_USAGE" :
+                        j.update_values(str(memory_usage)+" MBytes")
+                        j.add_new_value(str(memory_usage))               
+                    if j.name == "CPU_USAGE" :
+                        j.update_values(str(cpu_usage)+"%")
+                        j.add_new_value(str(cpu_usage))
+                        
+                        
                 favorisWi= self.driver.find_element_by_id('favoritesTitle_Fav')
                 favorisWi.click()
                 time.sleep(3)
@@ -573,7 +768,7 @@ class TestWebUi():
                 
                 
             ########################################  Réseau local########################################################## 
-            
+                
                 slideWidget= self.driver.find_element_by_css_selector('[class="navarrow right"]')
                 #self.driver.execute_script("arguments[0].click();",slideWidget)
                 slideWidget.click()
@@ -628,6 +823,18 @@ class TestWebUi():
                 self.driver.back()
                 time.sleep(3)
             ######################################## Stockage Livebox et Cloud d'Orange ########################################################## 
+                # set CPU usage + memory usage     
+                other_metrics = DUT_metrics()
+                cpu_usage = other_metrics.get_CPU_usage()
+                memory_usage = other_metrics.get_Memory_usage()
+                for j in metrics :
+                    if j.name == "MEMORY_USAGE" :
+                        j.update_values(str(memory_usage)+" MBytes")
+                        j.add_new_value(str(memory_usage))               
+                    if j.name == "CPU_USAGE" :
+                        j.update_values(str(cpu_usage)+"%")
+                        j.add_new_value(str(cpu_usage))
+                        
                 slideWidget= self.driver.find_element_by_css_selector('[class="navarrow right"]')
                 slideWidget.click()
                 time.sleep(2)
@@ -651,6 +858,18 @@ class TestWebUi():
                 time.sleep(3)
                 
             ######################################## Paramètres avancés ##########################################################    
+                # set CPU usage + memory usage     
+                other_metrics = DUT_metrics()
+                cpu_usage = other_metrics.get_CPU_usage()
+                memory_usage = other_metrics.get_Memory_usage()
+                for j in metrics :
+                    if j.name == "MEMORY_USAGE" :
+                        j.update_values(str(memory_usage)+" MBytes")
+                        j.add_new_value(str(memory_usage))               
+                    if j.name == "CPU_USAGE" :
+                        j.update_values(str(cpu_usage)+"%")
+                        j.add_new_value(str(cpu_usage))
+                        
                 slideWidget= self.driver.find_element_by_css_selector('[class="navarrow right"]')
                 slideWidget.click()
                 time.sleep(2)
@@ -711,6 +930,19 @@ class TestWebUi():
                 time.sleep(3)
                 self.driver.back()
                 time.sleep(3)
+                
+                # set CPU usage + memory usage     
+                other_metrics = DUT_metrics()
+                cpu_usage = other_metrics.get_CPU_usage()
+                memory_usage = other_metrics.get_Memory_usage()
+                for j in metrics :
+                    if j.name == "MEMORY_USAGE" :
+                        j.update_values(str(memory_usage)+" MBytes")
+                        j.add_new_value(str(memory_usage))               
+                    if j.name == "CPU_USAGE" :
+                        j.update_values(str(cpu_usage)+"%")
+                        j.add_new_value(str(cpu_usage))
+                        
                 try :
                     self.driver.execute_script("$(window.open('http://www.google.com'))")
                     time.sleep(5) 
@@ -726,6 +958,19 @@ class TestWebUi():
                 except:
                     print("no internet connection")
                     pass
+                
+                # set CPU usage + memory usage     
+                other_metrics = DUT_metrics()
+                cpu_usage = other_metrics.get_CPU_usage()
+                memory_usage = other_metrics.get_Memory_usage()
+                for j in metrics :
+                    if j.name == "MEMORY_USAGE" :
+                        j.update_values(str(memory_usage)+" MBytes")
+                        j.add_new_value(str(memory_usage))               
+                    if j.name == "CPU_USAGE" :
+                        j.update_values(str(cpu_usage)+"%")
+                        j.add_new_value(str(cpu_usage))
+                        
                 try:
                     self.driver.switch_to_window(self.driver.window_handles[0])
                     time.sleep(5)
@@ -745,8 +990,8 @@ class TestWebUi():
                         
                 
     def endTest(self):
-        self.table.update(state="Finished")
-        self.table.update(progress=str(100))
+        self.table_one.update(state="Finished")
+        self.table_one.update(progress=str(100))
         self.driver.close()
         
 

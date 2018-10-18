@@ -14,7 +14,33 @@ from .models import Project, Step, Test_Result, Step_Result, Project_result,Metr
 from .threads import WebUiThread, Synchronize_Steps
 import datetime
 from _mysql import result
+import netifaces
+from .extra import DUT_metrics, Builds_list, Build
 
+
+
+
+@login_required(login_url='/accounts/login/')
+def start_flash(request):
+    #code 
+    build = json.loads(request.POST.get('build'))
+    path = json.loads(request.POST.get('path'))
+    target = json.loads(request.POST.get('target'))
+    print(build,path) 
+    print(target)
+
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    print(BASE_DIR)
+           
+    cmd="echo sah | sudo -S ipython "+BASE_DIR+"/AutoRobustness/flash.py "+path+" "+build+" "+target
+    print(cmd)
+
+    completed = subprocess.Popen(cmd, shell=True)
+    #print('returncode:', completed.returncode)
+
+    print("OK c bon")
+    return HttpResponse("OK")
+    
 
 
 
@@ -27,6 +53,7 @@ def dashbord(request):
             if key == "project":
                 project_id = value
                 print(project_id)
+            
             results = [ob.as_json() for ob in Step_Result.objects.all()]
             print(results)
             return JsonResponse({'all_tests':results})
@@ -116,16 +143,19 @@ def after_login(request):
     global project 
     for key, value in request.POST.items():
         keys.append(key) 
-        #print(keys)
+        print(keys)
         if key == "project":
             project = value
     #print(keys) 
-    
+    #print(project)
     if "Start_Test" in keys:
         return start_test(request)
             
     if "Configure" in keys:
-        return configure_test(request)
+        return configure_test(request,project)
+    if "Flash_the_DUT" in keys :
+        print("Flash_the_DUT")
+        return flash_the_dut(request)
     
     message=""
     projects = Project.objects.all().order_by('-name')
@@ -134,15 +164,28 @@ def after_login(request):
 
 
 @login_required(login_url='/accounts/login/')
-def configure_test(request):
+def configure_test(request,project_name):
 
     steps = Step.objects.all().order_by('step_number')
     test_time = Config_time.objects.all()[0].test_time
     print(test_time)
     
-    return render(request,'configure.html',context={'steps':steps ,'test_time':str(test_time)})
+    test_time_hours=test_time.hour
+    test_time_minutes=test_time.minute
+    test_time_seconds=test_time.second
+    return render(request,'configure.html',context={'steps':steps ,'test_time_hour':str(test_time_hours),'test_time_minute':str(test_time_minutes),'test_time_second':str(test_time_seconds),'project_name':str(project_name)})
+
+@login_required(login_url='/accounts/login/')
+def flash_the_dut(request):
+    ip=get_ip("enp0s8")
+    k = Builds_list()
+    builds_list = k.get_builds_names()
+    return render(request,'flash_the_dut.html',context={'ip':ip,'builds_list':builds_list})
 
 
+def get_ip(interface):
+    netifaces.ifaddresses(interface)
+    return netifaces.ifaddresses(interface)[2][0]['addr']
 
 @login_required(login_url='/accounts/login/')
 def start_test(request):
@@ -154,11 +197,27 @@ def start_test(request):
     # Project ID format : Name + time of the execution 
     current_time = time.localtime()
     now = time.strftime('%d-%m-%YT%H:%M:%S', current_time)
+
+    
+    print(project)
     global project_id
     project_id = project+"_"+now 
-    project_result = Project_result(project_result_id = project_id)
+    project_result = Project_result(project_result_id = project_id,gateway_name=project)
+    
+
+    
+    
     project_result.save()
     class_name = Project.objects.get(name = project).classe.name
+    #test for project name 
+    a= DUT_metrics()
+    dut_class = a.get_class()
+
+    if class_name.upper() not in dut_class.upper():
+        message="Error in project selection!!"
+        projects = Project.objects.all().order_by('-name')
+        return render(request,'index.html',context={'mess':message,'projects':projects})
+    
     for i in steps :
         test_list = []
         state_list = [] 
@@ -171,7 +230,9 @@ def start_test(request):
             print(metric_list)
             print(oneTest.test_id)            
             for k in metric_list:
-                oneMetricResult  = Metric_Result(name = k.name,test_name=j.name,step_name=i.name,project_name=project_result.project_result_id)
+                current_time = time.localtime()
+                now = time.strftime('%Y-%m-%d %H:%M:%S', current_time)  
+                oneMetricResult  = Metric_Result(name = k.name,test_name=j.name,step_name=i.name,project_name=project_result.project_result_id,gateway_name=project_result.gateway_name,execution_date=now)
                 oneMetricResult.save()
                 oneTest.metrics.add(oneMetricResult)
                 
@@ -194,10 +255,13 @@ def start_test(request):
     # time to execute one tests (step)
     a = Config_time.objects.all().filter(name="test_time")[0].test_time
     test_time=(a.hour*3600+a.minute*60+a.second)
-    test_time = 14400
+    print('Test time',test_time)
     Synchronize_Steps(ste,test_time,class_name)
     
-    return render(request,'test.html',context={'mess':message,'latest_results_list':ste,"project_name":project,"project_id":project_result.project_result_id,"project_id":project_id})
+    total_time= test_time*len(steps)
+    print('Total test-time',total_time)
+    ip=get_ip("enp0s3")
+    return render(request,'test.html',context={'mess':message,'latest_results_list':ste,"project_name":project,"project_id":project_result.project_result_id,"project_id":project_id,"total_time":total_time,'ip':ip})
 
 def update(request):
     project_result = Project_result.objects.get(project_result_id=project_id)
@@ -222,6 +286,7 @@ def update(request):
         new = ",".join(total_state)
         i.update_state(new)
         i.update_progress(progress)
+        
         i.update_metrics(new_metric)
         
             

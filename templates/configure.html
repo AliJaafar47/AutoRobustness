@@ -12,9 +12,14 @@
 
 <form method="POST" action="{% url 'login_success' %}">
 {% csrf_token %}
+<p align="center">
+ <option class="container" id='project_name' >Project Name : {{project_name}}</option>
+</p>
 <HorizontalPanel>
 <button type="button" style="float: right;"  class="button2" onclick="addCell();">Add Step</button>
  &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;
+ 
+
 <button type="submit" style="float: left;"  class="button2" >Back</button>
 </HorizontalPanel>
 
@@ -33,11 +38,11 @@ console.log("{{test_time}}");
 
 </script>
 
-<h4 align="center"  >Step's Time
+<h4 align="center" id="step_time" >Step's Time
  &nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp; 
- <input type="time" value={{test_time}} id='test_time' min="00:00:00" max="12:59:59" class="without_ampm"  step="1" />
+ (hh:)<input type='number' id="test_time_hour" value={{test_time_hour}} min=0 max=23 >(mm):<input type='number' id="test_time_minute" value={{test_time_minute}} min=0 max=59 >(ss):<input type='number' id="test_time_second" value={{test_time_second}} min=0 max=23 >
  </h4>
-
+<p id="error_message" style="color:red;display:none;"> * (hh) must be between 0 and 23, (mm) must be between 0 and 59 and (mm) must be between 0 and 59 </p>
 <br>
 
 <table id="Mytable" class='responstable'>
@@ -164,10 +169,22 @@ function restoreSteps() {
 
 <button   class="button2" onclick="restore_default();">Restore Default</button>
    &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;
+   
 <button class="button2" onclick="save()">Save</button>
+   &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;
+   
 
 </HorizontalPanel>
+<form method="POST" action="{% url 'after_login' %}">
+{% csrf_token %}  
+<p align="center">
+<button type="submit"  name="Start_Test"  id="Start_Test" class="button3" >Start Test</button>
 
+    <select  id="selections" style="display:none" name="project" class="select">
+	<option class="container" value={{project_name}} >{{project_name}}</option>
+  	</select> 
+ </p>
+ </form>  
 <br>
 <br>
 <br>
@@ -221,13 +238,15 @@ function get_config(){
 function save(){
 	//console.log(window.hot.getData());
 	config = get_config();
-	var test_time = document.getElementById("test_time").value;
-	console.log(test_time);
+	var test_time_hour = document.getElementById("test_time_hour").value;
+	var test_time_minute = document.getElementById("test_time_minute").value;
+	var test_time_second = document.getElementById("test_time_second").value;
+	
 	var times=[];
 	var time = {
-			"hour": test_time.substring(0,2),
-			"minute": test_time.substring(3,5),
-			"second":test_time.substring(6,8)}
+			"hour": test_time_hour,
+			"minute": test_time_minute,
+			"second":test_time_second}
 	times.push(time);
 	final_time = JSON.stringify(times);
 	console.log(final_time);
@@ -237,10 +256,16 @@ function save(){
 		    type: "POST",
 		    data: { "json_items" : config ,'time':final_time ,csrfmiddlewaretoken:$("input[name=csrfmiddlewaretoken]").val()},
 		    success:function(response){
+		    	document.getElementById('error_message').style.display='none';  
+		    	document.getElementById('step_time').style.color='#024457';
 		        alert("success: " + response);
 		    },
 		    error:function (xhr, textStatus, thrownError){
-		        alert("xhr status: " + xhr.statusText);
+		    	
+		    	document.getElementById('step_time').style.color='red';
+		    	document.getElementById('error_message').style.display='block';
+		        alert("Time input are not valid !");
+		        
 		    },
 
 		});
@@ -304,7 +329,19 @@ function restore_default(){
 		
 		
 	}
+	
+	var test_time_hour = document.getElementById("test_time_hour");
+	var test_time_minute = document.getElementById("test_time_minute");
+	var test_time_second = document.getElementById("test_time_second");
+	
+	test_time_hour.value=4;
+	test_time_minute.value=0;
+	test_time_second.value=0;
+	
+	
+	
 	console.log("table setted");
+	
 	
 }
 </script>

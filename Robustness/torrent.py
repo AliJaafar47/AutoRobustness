@@ -10,6 +10,7 @@ import time
 import paramiko 
 import select
 from .models import Project, Step, Test_Result, Step_Result, Project_result
+from .extra import DUT_metrics
 
 class P2pTest():
     def __init__(self,name,test_time):
@@ -32,16 +33,16 @@ class P2pTest():
                     print ("Connected to %s" % self.ip)
                     break
                 except paramiko.AuthenticationException:
-                    print ("Authentication failed when connecting to %s") % self.ip
+                    print ("Authentication failed when connecting to %s" % self.ip)
                     sys.exit(1)
                 except:
-                    print ("Could not SSH to %s, waiting for it to start" % self.ip)
+                    print ("Could not SSH to %s, waiting for it to start"  % self.ip)
                     i += 1
                     time.sleep(2)
         
             # If we could not connect within time limit
                 if i == 5:
-                    print ("Could not connect to %s. Giving up") % self.ip
+                    print ("Could not connect to %s. Giving up" % self.ip)
                     sys.exit(1)    
             
 
@@ -79,7 +80,7 @@ class GetResult():
 class TestTorrent():
     
     def __init__(self,test_time,class_name,IDTable):
-        self.number_of_files = 2
+        self.number_of_files = 21
         self.class_name = class_name
         self.test_time = test_time
         self.table = IDTable
@@ -127,17 +128,21 @@ class TestTorrent():
             #Ending downloading       
             self.table_one.update(state="Getting results")
             try :
-                result = result / peers 
+                result = (result / peers )*2
             except :
                 result = 0 
             result_peers = str(peers)
             
-            result_throughput = str(result/1000)+" Mbit/s"
+            result_throughput = str(float(result)/1000)[0:4]+" Mbytes/s"
             
             metrics = self.table.metrics.all()
             
             percentage = str((time.time() / timeout))[9:11]
             self.table_one.update(progress=str(percentage))
+            
+            other_metrics = DUT_metrics()
+            cpu_usage = other_metrics.get_CPU_usage()
+            memory_usage = other_metrics.get_Memory_usage()
             
             
             for j in metrics :
@@ -146,6 +151,13 @@ class TestTorrent():
                     j.add_all_values(",".join(throughtput_list))
                 if j.name == "NUMBER_OF_CONNECTION":
                     j.update_values(result_peers)
+                    
+                if j.name == "MEMORY_USAGE" :
+                    j.update_values(str(memory_usage)+" MBytes")
+                    j.add_new_value(str(memory_usage))               
+                if j.name == "CPU_USAGE" :
+                    j.update_values(str(cpu_usage)+"%")
+                    j.add_new_value(str(cpu_usage))
                     
                     
         self.table_one.update(state="Finished")

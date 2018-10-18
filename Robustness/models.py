@@ -36,8 +36,10 @@ class Metric(models.Model):
     ONE_WAY_DELAY_UPSTREAM = "ONE_WAY_DELAY_UPSTREAM"
     ONE_WAY_DELAY_DOWNSTREAM = "ONE_WAY_DELAY_DOWNSTREAM"
     NA="N/A"
+    CPU_USAGE = 'CPU_USAGE'
+    MEMORY_USAGE= 'MEMORY_USAGE'
     
-    METRICS_CHOICES = ((THROUGHPUT, 'THROUGHPUT'),(PACKET_LOSS, 'PACKET_LOSS'),(NUMBER_OF_CONNECTIONS, 'NUMBER_OF_CONNECTIONS'),(PESQ_UPSTREAM, 'PESQ_UPSTREAM'),(PESQ_DOWNSTREAM, 'PESQ_DOWNSTREAM'),(ONE_WAY_DELAY_UPSTREAM, 'ONE_WAY_DELAY_UPSTREAM'),(ONE_WAY_DELAY_DOWNSTREAM, 'ONE_WAY_DELAY_DOWNSTREAM'),(NA, 'N/A'))
+    METRICS_CHOICES = ((THROUGHPUT, 'THROUGHPUT'),(PACKET_LOSS, 'PACKET_LOSS'),(NUMBER_OF_CONNECTIONS, 'NUMBER_OF_CONNECTIONS'),(PESQ_UPSTREAM, 'PESQ_UPSTREAM'),(PESQ_DOWNSTREAM, 'PESQ_DOWNSTREAM'),(ONE_WAY_DELAY_UPSTREAM, 'ONE_WAY_DELAY_UPSTREAM'),(ONE_WAY_DELAY_DOWNSTREAM, 'ONE_WAY_DELAY_DOWNSTREAM'),(NA, 'N/A'),(CPU_USAGE,'CPU_USAGE'),(MEMORY_USAGE,'MEMORY_USAGE'))
     name = models.CharField(max_length=100,unique=True, choices=METRICS_CHOICES)
     values = models.CharField(max_length=5000,default="N/A",help_text="Value of one Metric") 
     
@@ -57,9 +59,10 @@ class Metric(models.Model):
     
 class Metric_Result(models.Model):
     name = models.CharField(max_length=100)
-    values = models.CharField(max_length=5000,default="0",help_text="Values of one Metric") 
+    values = models.CharField(max_length=60000,default="0",help_text="Values of one Metric") 
     list_of_values = models.CharField(max_length=5000,default="",help_text="Values of one Metric")
     project_name = models.CharField(max_length=100)
+    gateway_name = models.CharField(max_length=100,default="Generic2")
     step_name = models.CharField(max_length=100)
     test_name = models.CharField(max_length=100)
     execution_date=models.DateTimeField(default=datetime.now())
@@ -150,6 +153,7 @@ class Step(models.Model):
         
 class Project_result(models.Model):
     project_result_id = models.CharField(max_length=200,unique=True, help_text="ID")
+    gateway_name = models.CharField(max_length=200,help_text="Gateway Name",default="Generic2")
     
     def __str__(self):
         return self.project_result_id
@@ -172,7 +176,7 @@ class Step_Result(models.Model):
     step_number = models.IntegerField(help_text="Number Of Step")
     state = models.CharField(max_length=200, help_text="State",default="Unfinished")
     progress = models.CharField(max_length=200, help_text="progress",default="0")
-    metrics = models.CharField(max_length=200, help_text="metrics",default="N/A")
+    metrics = models.CharField(max_length=50000,help_text="metrics",default="N/A")
     
     def update_state(self,new_state):
         

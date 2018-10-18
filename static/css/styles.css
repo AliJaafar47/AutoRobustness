@@ -578,10 +578,12 @@ If you like this solution, you might also want to check out the 1.0 version:
 }
 .responstable tr {
   border: 1px solid #D9E4E6;
+  background-color: #D9E4E6;
 }
 .responstable tr:nth-child(odd) {
-  background-color: #EAF3F3;
+  background-color: #D9E4E6;
 }
+
 .responstable th {
   display: none;
   border: 1px solid #FFF;
@@ -591,7 +593,7 @@ If you like this solution, you might also want to check out the 1.0 version:
 }
 .responstable th:first-child {
   display: table-cell;
-  text-align: center;
+  text-align: left;
 }
 .responstable th:nth-child(2) {
   display: table-cell;
@@ -617,7 +619,7 @@ If you like this solution, you might also want to check out the 1.0 version:
 }
 .responstable td:first-child {
   display: table-cell;
-  text-align: center;
+  text-align: left;
   border-right: 1px solid #D9E4E6;
   
 }
@@ -679,6 +681,7 @@ h1 span {
 	-moz-box-shadow: 0px 0px 2px #fff inset;
 	-webkit-box-shadow: 0px 0px 2px #fff inset;
 	box-shadow: 0px 0px 2px #fff inset;	
+	
 }
 
 .textstyle4 
@@ -697,5 +700,55 @@ h1 span {
 }
 
 
+.text3{
+	background: #e3e3e3;
+	border: 3px solid #ccc;
+	color: #333;
+	font-family: "Trebuchet MS", "Myriad Pro", sans-serif;
+	font-size: 18px;
+	font-weight: bold;
+	padding: 8px 0 9px;
+	text-align: center;
+	width: 250px;
+	cursor:pointer;
+	text-shadow: 0px 1px 0px #fff;
+	-moz-border-radius: 6px;
+	-webkit-border-radius: 6px;
+	border-radius: 7px;
+	-moz-box-shadow: 0px 0px 2px #fff inset;
+	-webkit-box-shadow: 0px 0px 2px #fff inset;
+	box-shadow: 0px 0px 2px #fff inset;	
+}
+.text33{
+	background: #e3e3e3;
+	border: 3px solid #ccc;
+	color: #333;
+	font-family: "Trebuchet MS", "Myriad Pro", sans-serif;
+	font-size: 18px;
+	font-weight: bold;
+	padding: 8px 0 9px;
+	text-align: center;
+	width: 500px;
+	cursor:pointer;
+	text-shadow: 0px 1px 0px #fff;
+	-moz-border-radius: 6px;
+	-webkit-border-radius: 6px;
+	border-radius: 7px;
+	-moz-box-shadow: 0px 0px 2px #fff inset;
+	-webkit-box-shadow: 0px 0px 2px #fff inset;
+	box-shadow: 0px 0px 2px #fff inset;	
+}
+ #progressbar {
+    margin-top: 20px;
+  }
+ 
+  .progress-label {
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #fff;
+  }
+ 
+  .ui-dialog-titlebar-close {
+    display: none;
+  }
 
 

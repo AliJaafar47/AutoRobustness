@@ -5,6 +5,9 @@ import threading
 import pwd
 from .models import Project, Step, Test_Result, Step_Result, Project_result
 from builtins import str
+from .extra import DUT_metrics
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 #Class For 1 IPTV stream    
 
@@ -86,7 +89,8 @@ class MyThread_GetResult1(threading.Thread):
     
     def __init__(self,username,pwd,ip,IDTable):
         threading.Thread.__init__(self)
-        file = open("logTV.txt","w")
+        
+        file = open(BASE_DIR+"/Robustness/logTV.txt","w")
         file.write("")
         file.close()  
         
@@ -137,11 +141,11 @@ class MyThread_GetResult1(threading.Thread):
         for line in stdout.read().splitlines():
             print(line.decode("ascii"))
             out= line.decode("ascii")+"\n"
-            file = open("logTV.txt","a")
+            file = open(BASE_DIR+"/Robustness/logTV.txt","a")
             file.write(out)
             file.close() 
             
-        a = open("logTV.txt","r")
+        a = open(BASE_DIR+"/Robustness/logTV.txt","r")
         average_packet_loss = 0
         average_bw = 0
         j = 0
@@ -173,14 +177,24 @@ class MyThread_GetResult1(threading.Thread):
         
         metrics = self.table.metrics.all()
         
+        other_metrics = DUT_metrics()
+        cpu_usage = other_metrics.get_CPU_usage()
+        memory_usage = other_metrics.get_Memory_usage()
         
         for j in metrics :
             if j.name == "THROUGHPUT" :
-                j.update_values(throughput+"Mbit/s")
+                j.update_values(throughput+"Mbytes/s")
                 j.add_new_value(throughput)
             if j.name == "PACKET_LOSS":
                 j.update_values(packet_loss)
                 j.add_new_value(packet_loss)
+            if j.name == "MEMORY_USAGE" :
+                j.update_values(str(memory_usage)+" MBytes")
+                j.add_new_value(str(memory_usage))               
+            if j.name == "CPU_USAGE" :
+                j.update_values(str(cpu_usage)+"%")
+                j.add_new_value(str(cpu_usage))
+            
                 
         #print('AVG P',round(average_packet_loss/j),' AVG BW',round(average_bw/j))  
     
@@ -188,7 +202,7 @@ class MyThread_GetResult1(threading.Thread):
             
 class TestIPTV1():       
     def __init__(self,time_test,class_name,IDTable):
-        ip="192.168.1.103"
+        ip="192.168.1.150"
         username = "pi"
         pwd = "raspberry"
         
@@ -324,7 +338,7 @@ class MyThread_GetResult2(threading.Thread):
     
     def __init__(self,username,pwd,ip,IDTable):
         threading.Thread.__init__(self)
-        file = open("logTV.txt","w")
+        file = open(BASE_DIR+"/Robustness/logTV.txt","w")
         file.write("")
         file.close()  
         
@@ -379,21 +393,21 @@ class MyThread_GetResult2(threading.Thread):
         for line in stdout1.read().splitlines():
             print(line.decode("ascii"))
             out= line.decode("ascii")+"\n"
-            file = open("logTV1.txt","w")
+            file = open(BASE_DIR+"/Robustness/logTV1.txt","w")
             file.write(out)
             file.close() 
         
         for line in stdout2.read().splitlines():
             print(line.decode("ascii"))
             out= line.decode("ascii")+"\n"
-            file = open("logTV2.txt","w")
+            file = open(BASE_DIR+"/Robustness/logTV2.txt","w")
             file.write(out)
             file.close()
         
         
             
-        a1 = open("logTV1.txt","r")
-        a2 = open("logTV2.txt","r")
+        a1 = open(BASE_DIR+"/Robustness/logTV1.txt","r")
+        a2 = open(BASE_DIR+"/Robustness/logTV2.txt","r")
         
         average_packet_loss = 0
         average_bw = 0
@@ -443,7 +457,9 @@ class MyThread_GetResult2(threading.Thread):
             packet_loss  = str(round(average_packet_loss/(j*1000)))
         
         metrics = self.table.metrics.all()
-        
+        other_metrics = DUT_metrics()
+        cpu_usage = other_metrics.get_CPU_usage()
+        memory_usage = other_metrics.get_Memory_usage()
         for j in metrics :
             if j.name == "THROUGHPUT" :
                 j.update_values(throughput+"Mbit/s")
@@ -451,7 +467,13 @@ class MyThread_GetResult2(threading.Thread):
             if j.name == "PACKET_LOSS":
                 j.update_values(packet_loss)
                 j.add_new_value(packet_loss)
-        
+            if j.name == "MEMORY_USAGE" :
+                j.update_values(str(memory_usage)+" MBytes")
+                j.add_new_value(str(memory_usage))               
+            if j.name == "CPU_USAGE" :
+                j.update_values(str(cpu_usage)+"%")
+                j.add_new_value(str(cpu_usage))
+            
         
         #print('AVG P',round(average_packet_loss/j),' AVG BW',round(average_bw/j))  
     
@@ -459,7 +481,12 @@ class MyThread_GetResult2(threading.Thread):
             
 class TestIPTV2():       
     def __init__(self,time_test,class_name,IDTable,test_type):
-        ip="192.168.1.103"
+        if test_type == "wlan":
+            print('WLAN')
+            ip="192.168.1.130"
+        else : 
+            print('LAN')
+            ip="192.168.1.108"
         username = "pi"
         pwd = "raspberry"
         
@@ -467,7 +494,7 @@ class TestIPTV2():
         self.test_time = time_test
         self.class_name = class_name
         self.IDTable = IDTable
-        self.iptv_time = 10
+        self.iptv_time = 15
         timeout= time.time()+self.test_time
         
         #table to update progress

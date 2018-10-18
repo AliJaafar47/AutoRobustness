@@ -19,7 +19,7 @@ function goBack() {
 
 {% block other%}
 <br>
-<a align="center" style="color:red;">{{mess}}</a>
+
 
 {% endblock %}
 <br>
@@ -32,16 +32,26 @@ function goBack() {
 {% csrf_token %}
 
 <HorizontalPanel>
-<input type="button" name="Go_Back"  onclick="goBack();"  id="Go_Back" class="button4" value="Go Back" >
+
+<input type="button" name="Go_Back"  onclick="goBack();"  style="float:left;" id="Go_Back" class="button4" value="Go Back" >
 &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;
 &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;
-<span id="project_name" class="textstyle4" >{{project_name}} </span>
-&nbsp; &nbsp;&nbsp;
-<span id="time_left" class="textstyle4" >Time Left : </span>
+
+
+<a href="http://{{ip}}:5601/" target="_blank" align="center"  style="float:right;" class="button4" value="Dashbord" >
+Dashbord
+</a>
+
+</HorizontalPanel>
+
+<div align="center">
+<!--  <span id="project_name" class="textstyle4" >{{project_name}} </span>
+&nbsp; &nbsp;&nbsp;-->
+<span id="time_left" class="textstyle4" >Estimated Time Left : </span>
 &nbsp;&nbsp; 
 <span id="demo" class="textstyle4" ></span>
 &nbsp;&nbsp;
-<input type="submit" id="dashbord" align="center"  class="button4" value="Dashbord" >
+</div>
 
 
     <select  name="project" class="select"  style="display: none;">
@@ -49,7 +59,7 @@ function goBack() {
     </select> 
     
     
-</HorizontalPanel>
+
 </form>
 
 <script type="text/javascript">   
@@ -58,30 +68,212 @@ function goBack() {
             $.getJSON("{% url 'update' %}",
                     function (data) {
                         var json = data['latest_results_list'];
+                        console.log(json)
                         var tr;
                          $('#myTable tbody').html("");
                         for (var i = 0; i < json.length; i++) {
                             tr = $('<tr/>');
-                            tr.append("<td>" + json[i].step_number + "</td>");
-                            tr.append("<td>" + json[i].name + "</td>");
-                            tr.append("<td>" + json[i].description + "</td>");
-                            tr.append("<td>" + json[i].state + "</td>");
-                            tr.append("<td>" + json[i].progress + " % </td>");
-                            tr.append("<td>" + json[i].metrics + " </td>");
-                             $('#myTable tbody').append(tr);
+                            tr.append("<td rowspan="+number_of_tests(json[i].description)+" >" + json[i].step_number + "</td>");
+                            tr.append("<td rowspan="+number_of_tests(json[i].description)+" >" + json[i].name + "</td>");
+                            tr.append("<td >" +get_description(json[i].description,0)+"</td>");
+                            tr.append("<td>" + get_description(json[i].state,0) + "</td>");
+                            
+                            tr.append("<td>" + get_metrics(json[i].metrics,0,get_description(json[i].description,0),json[i].description) + " </td>");
+                            tr.append("<td rowspan="+number_of_tests(json[i].description)+" >" + json[i].progress + " % </td>");
+                            
+                            
+                            $('#myTable tbody').append(tr);
+                            
+                            for (var j = 1; j < number_of_tests(json[i].description); j++) {
+                            	tr = $('<tr/>');
+                            	tr.append("<td >" +get_description(json[i].description,j)+"</td>");
+                            	tr.append("<td>" + get_description(json[i].state,j) + "</td>");
+                               	tr.append("<td>" + get_metrics(json[i].metrics,j,get_description(json[i].description,j),json[i].description) + " </td>");
+                            	$('#myTable tbody').append(tr);
+                            }
 
                         }
                     });
        },5000);
     });
 </script>
+<script>
+
+function get_description(des,num){
+	var list_des = [];
+	list_des = des.split(",");
+	return (list_des[num])
+}
+
+function get_state(des,num){
+	var list_des = [];
+	list_des = des.split(",");
+	return (list_des[num])
+}
+function get_metrics(metrics,num,name,description){
+	var list_met = [];
+	var list_description = [];
+	var list_description = description.split(",");
+	list_met = metrics.split(",");
+	
+	var number_of_metrics=0;
+	var final_out='';
+	var index = 0;
+	
+	
+	number_of_metrics =get_number_of_metrics(list_description[num]);
+	
+	for (var k = 0 ;k<num;k++){
+		index=index+get_number_of_metrics(list_description[k]);
+		
+	}	
+	
+	for (var k = index ;k<index+number_of_metrics;k++){
+		final_out = final_out+list_met[k]+"<br>";
+		
+	}	
+	
+	console.log(index);
+	console.log(final_out);
+	
+	
+	
+	
+	
+	
+	return (final_out)
+}
+
+function get_number_of_metrics(name){
+	if (name == "VoIP"){
+		number_of_metrics=6;
+		
+	}
+	if (name == "DATA_LAN_LAN"){
+		number_of_metrics=3;
+		
+	}
+	if (name == "DATA_LAN_WLAN_2_4_Ghz"){
+		number_of_metrics=3;
+		
+	}
+	if (name == "DATA_LAN_WLAN_5_Ghz"){
+		number_of_metrics=3;
+		
+	}
+	if (name == "DATA_WAN_WLAN_5_Ghz"){
+		number_of_metrics=3;
+		
+	}
+	if (name == "1xIPTV_WLAN_5_Ghz"){
+		number_of_metrics=4;
+		
+	}
+	if (name == "2xIPTV_WLAN_5_Ghz"){
+		number_of_metrics=4;
+		
+	}
+	if (name == "P2P_WLAN_5_Ghz"){
+		number_of_metrics=4;
+		
+	}
+	if (name == "2xIPTV_LAN"){
+		number_of_metrics=4;
+		
+	}
+	if (name == "WEBUI"){
+		number_of_metrics=2;
+		
+	}
+	return number_of_metrics;
+	
+}
+
+
+function split_metrics(metric){
+var list_metric = [];
+list_metric = metric.split(",");
+console.log(list_metric);
+var final_out = "";
+
+for (var i = 0; i < list_metric.length; i++) {
+	final_out = final_out + list_metric[i]+"<br>";
+}
+console.log(final_out);
+return final_out;
+
+}
+
+function split_description(description){
+	var list_description = [];	
+	list_description = description.split(",");
+	var final_out = "";
+
+	for (var i = 0; i < list_description.length; i++) {
+		final_out = final_out + list_description[i]+return_br(list_description[i]);
+	}
+	console.log(final_out);
+	return final_out;
+}
+function return_br (name){
+	if (name == "VoIP"){
+		return ("<br>"+"<br>"+"<br>"+"<br>"+"<br>");
+		
+	}
+	if (name == "DATA_LAN_LAN"){
+		return ("<br>"+"<br>"+"<br>");
+		
+	}
+	if (name == "DATA_LAN_WLAN_2_4_Ghz"){
+		return ("<br>"+"<br>"+"<br>");
+		
+	}
+	if (name == "DATA_LAN_WLAN_5_Ghz"){
+		return ("<br>"+"<br>"+"<br>");
+		
+	}
+	if (name == "DATA_WAN_WLAN_5_Ghz"){
+		return ("<br>"+"<br>"+"<br>");
+		
+	}
+	if (name == "1xIPTV_WLAN_5_Ghz"){
+		return ("<br>"+"<br>"+"<br>"+"<br>");
+		
+	}
+	if (name == "2xIPTV_WLAN_5_Ghz"){
+		return ("<br>"+"<br>"+"<br>"+"<br>");
+		
+	}
+	if (name == "P2P_WLAN_5_Ghz"){
+		return ("<br>"+"<br>"+"<br>"+"<br>");
+		
+	}
+	if (name == "2xIPTV_LAN"){
+		return ("<br>"+"<br>"+"<br>"+"<br>");
+		
+	}
+	if (name == "WEBUI"){
+		return ("<br>"+"<br>");
+		
+	}
+	
+}
+function number_of_tests(test){
+	list_description = test.split(",");
+	return list_description.length;
+}
+
+
+</script>
+
+
 
 
 <script>
 // Set the date we're counting down to
 //var countDownDate = new Date("Sep 5, 2018 15:37:25").getTime();
 var countDownDate = new Date();
-countDownDate.setSeconds(countDownDate.getSeconds() + 60);
+countDownDate.setSeconds(countDownDate.getSeconds() + {{total_time}} + {{total_time}}*0.2);
 // Update the count down every 1 second
 var x = setInterval(function() {
 
@@ -104,7 +296,7 @@ var x = setInterval(function() {
   // If the count down is finished, write some text 
   if (distance < 0) {
     clearInterval(x);
-    document.getElementById("demo").innerHTML = "EXPIRED";
+    document.getElementById("demo").innerHTML = "Finished";
   }
 }, 1000);
 </script>
@@ -115,9 +307,10 @@ var x = setInterval(function() {
       <th>Step Number</th>
       <th>Name</th>
       <th>Description</th>
-      <th>State</th>
-      <th>Progress</th>
+      <th>Status</th>
       <th>Metrics</th>
+      <th>Progress</th>
+      
     </tr>
     </thead>
     <tbody >
@@ -127,8 +320,9 @@ var x = setInterval(function() {
              <td>{{ b.name }}</td>
              <td>{{ b.description }}</td>
              <td>{{ b.state }}</td>
+             <td>{{ b.metrics }} </td>
              <td>{{ b.progress }} % </td>
-              <td>{{ b.metrics }} </td>
+              
              </tr>                 
          {% endfor %}
     </tbody >        
