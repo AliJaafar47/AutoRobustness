@@ -53,8 +53,8 @@ class Server(threading.Thread):
                 sys.exit(1)
 
     # Send the command (non-blocking)
-        #stdin, stdout, stderr = ssh.exec_command("killall iperf")
-        
+        stdin, stdout, stderr = ssh.exec_command("sudo killall iperf")
+        time.sleep(1)
         stdin, stdout, stderr = ssh.exec_command("echo $$ ; exec iperf -s -i 1")
         pid = stdout.readline()
         print(pid)
@@ -406,7 +406,10 @@ class TestSendDataFromWan():
         
         self.table_one.update(state="Adding NAT/PAT rule")
         self.add_nat_pat_rule(self.serverip,"5001")
-        time.sleep(5)
+        time.sleep(2)
+        self.table_one.update(state="Configure routes")
+        self.configure_route()
+        time.sleep(2)
         
         while time.time() < timeout :
             percentage = str((time.time() / timeout))[9:11]
@@ -513,8 +516,11 @@ class TestSendDataFromWan():
         print(tn.read_all().decode('ascii'))
         print("end")
         
-
-
+    def configure_route (self):
+        sudoPassword = 'sah'
+        command = 'route add -net 172.16.251.14 netmask 255.255.255.255 gw 192.168.1.1'
+        p = os.system('echo %s|sudo -S %s' % (sudoPassword, command))
+        #os.system("sudo route add -net 172.16.251.14 netmask 255.255.255.0 gw 192.168.1.1")
 
 
 
